@@ -15,6 +15,11 @@
 #endif
  
 
+#ifdef CONFIG_POWERSUSPEND
+#include <linux/powersuspend.h>
+#endif
+ 
+
 #include "power.h"
 
 static suspend_state_t autosleep_state;
