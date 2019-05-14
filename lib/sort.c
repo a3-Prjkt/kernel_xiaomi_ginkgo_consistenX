@@ -117,6 +117,8 @@ static void swap_bytes(void *a, void *b, size_t n)
 	} while (n);
 }
 
+typedef void (*swap_func_t)(void *a, void *b, int size);
+
 /*
  * The values are arbitrary as long as they can't be confused with
  * a pointer, but small integers make for the smallest compare
@@ -140,18 +142,6 @@ static void do_swap(void *a, void *b, size_t size, swap_func_t swap_func)
 		swap_bytes(a, b, size);
 	else
 		swap_func(a, b, (int)size);
-}
-
-typedef int (*cmp_func_t)(const void *, const void *);
-typedef int (*cmp_r_func_t)(const void *, const void *, const void *);
-#define _CMP_WRAPPER ((cmp_r_func_t)0L)
-
-static int do_cmp(const void *a, const void *b,
-		  cmp_r_func_t cmp, const void *priv)
-{
-	if (cmp == _CMP_WRAPPER)
-		return ((cmp_func_t)(priv))(a, b);
-	return cmp(a, b, priv);
 }
 
 /**
