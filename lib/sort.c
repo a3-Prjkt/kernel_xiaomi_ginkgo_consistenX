@@ -171,7 +171,7 @@ static size_t parent(size_t i, unsigned int lsbit, size_t size)
 }
 
 /**
- * sort_r - sort an array of elements
+ * sort - sort an array of elements
  * @base: pointer to data to sort
  * @num: number of elements
  * @size: size of each element
@@ -189,10 +189,9 @@ static size_t parent(size_t i, unsigned int lsbit, size_t size)
  * O(n*n) worst-case behavior and extra memory requirements that make
  * it less suitable for kernel use.
  */
-void sort_r(void *base, size_t num, size_t size,
-	    int (*cmp_func)(const void *, const void *, const void *),
-	    void (*swap_func)(void *, void *, int size),
-	    const void *priv)
+void sort(void *base, size_t num, size_t size,
+	  int (*cmp_func)(const void *, const void *),
+	  void (*swap_func)(void *, void *, int size))
 {
 	/* pre-scale counters for performance */
 	size_t n = num * size, a = (num/2) * size;
@@ -203,11 +202,11 @@ void sort_r(void *base, size_t num, size_t size,
 
 	if (!swap_func) {
 		if (is_aligned(base, size, 8))
-			swap_func = SWAP_WORDS_64;
+			swap_func = swap_words_64;
 		else if (is_aligned(base, size, 4))
-			swap_func = SWAP_WORDS_32;
+			swap_func = swap_words_32;
 		else
-			swap_func = SWAP_BYTES;
+			swap_func = swap_bytes;
 	}
 
 	/*
@@ -223,7 +222,7 @@ void sort_r(void *base, size_t num, size_t size,
 		if (a)			/* Building heap: sift down --a */
 			a -= size;
 		else if (n -= size)	/* Sorting: Extract root to --n */
-			do_swap(base, base + n, size, swap_func);
+			swap_func(base, base + n, size);
 		else			/* Sort complete */
 			break;
 
@@ -240,26 +239,18 @@ void sort_r(void *base, size_t num, size_t size,
 		 * average, 3/4 worst-case.)
 		 */
 		for (b = a; c = 2*b + size, (d = c + size) < n;)
-			b = do_cmp(base + c, base + d, cmp_func, priv) >= 0 ? c : d;
+			b = cmp_func(base + c, base + d) >= 0 ? c : d;
 		if (d == n)	/* Special case last leaf with no sibling */
 			b = c;
 
 		/* Now backtrack from "b" to the correct location for "a" */
-		while (b != a && do_cmp(base + a, base + b, cmp_func, priv) >= 0)
+		while (b != a && cmp_func(base + a, base + b) >= 0)
 			b = parent(b, lsbit, size);
 		c = b;			/* Where "a" belongs */
 		while (b != a) {	/* Shift it into place */
 			b = parent(b, lsbit, size);
-			do_swap(base + b, base + c, size, swap_func);
+			swap_func(base + b, base + c, size);
 		}
 	}
-}
-EXPORT_SYMBOL(sort_r);
-
-void sort(void *base, size_t num, size_t size,
-	  int (*cmp_func)(const void *, const void *),
-	  void (*swap_func)(void *, void *, int size))
-{
-	return sort_r(base, num, size, _CMP_WRAPPER, swap_func, cmp_func);
 }
 EXPORT_SYMBOL(sort);
