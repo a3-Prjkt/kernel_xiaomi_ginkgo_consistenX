@@ -21,7 +21,9 @@
 #define CHAR_BIT 8 /* define this if limits.h not available */
 #endif
 
+#ifdef CONFIG_FENCE_DEBUG
 #define SDE_FENCE_NAME_SIZE	24
+#endif
 
 /**
  * struct sde_fence_context - release/retire fence context/timeline structure
