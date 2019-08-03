@@ -178,7 +178,6 @@ static unsigned int fq_codel_drop(struct Qdisc *sch, unsigned int max_packets,
 
 	/* Tell codel to increase its signal strength also */
 	flow->cvars.count += i;
-	flow->dropped += i;
 	q->backlogs[idx] -= len;
 	q->memory_usage -= mem;
 	sch->qstats.drops += i;
