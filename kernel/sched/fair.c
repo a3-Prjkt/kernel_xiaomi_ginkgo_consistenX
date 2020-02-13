@@ -155,7 +155,7 @@ unsigned int __read_mostly sysctl_sched_energy_aware = 1;
 unsigned int sysctl_sched_wakeup_granularity		= 2000000UL;
 unsigned int normalized_sysctl_sched_wakeup_granularity	= 2000000UL;
 
-const_debug unsigned int sysctl_sched_migration_cost	= 2000000UL;
+const_debug unsigned int sysctl_sched_migration_cost;
 DEFINE_PER_CPU_READ_MOSTLY(int, sched_load_boost);
 
 #ifdef CONFIG_SMP
