@@ -1082,7 +1082,6 @@ static char *files_array[] = {
 
 static char *paths_array[] = {
 	"/data/adb/modules",
-	"/system/etc",
 	"/data/app"
 };
 
