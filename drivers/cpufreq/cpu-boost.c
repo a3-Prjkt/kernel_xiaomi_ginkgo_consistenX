@@ -27,6 +27,7 @@
 #include <uapi/linux/sched/types.h>
 
 #include <linux/sched/rt.h>
+#include <linux/battery_saver.h>
 
 struct cpu_sync {
 	int cpu;
