@@ -2896,7 +2896,7 @@ static inline int asym_cap_siblings(int cpu1, int cpu2) { return 0; }
 
 static inline bool asym_cap_sibling_group_has_capacity(int dst_cpu, int margin)
 {
-	return false;
+	return capacity_orig_of(cpu);
 }
 
 static inline void set_preferred_cluster(struct related_thread_group *grp) { }
