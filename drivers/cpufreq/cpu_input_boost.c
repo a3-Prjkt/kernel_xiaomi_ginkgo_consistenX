@@ -13,20 +13,24 @@
 #include <linux/battery_saver.h>
 #include <linux/moduleparam.h>
 #include <linux/slab.h>
-#include <linux/version.h>
+#include <linux/moduleparam.h>
+#include <uapi/linux/sched/types.h>
 
-static unsigned int input_boost_freq_lp = CONFIG_INPUT_BOOST_FREQ_LP;
-static unsigned int input_boost_freq_hp = CONFIG_INPUT_BOOST_FREQ_PERF;
-static unsigned short input_boost_duration = CONFIG_INPUT_BOOST_DURATION_MS;
+static unsigned int input_boost_freq_lp __read_mostly =
+	CONFIG_INPUT_BOOST_FREQ_LP;
+static unsigned int input_boost_freq_hp __read_mostly =
+	CONFIG_INPUT_BOOST_FREQ_PERF;
+
+static unsigned short input_boost_duration __read_mostly =
+	CONFIG_INPUT_BOOST_DURATION_MS;
+static unsigned short wake_boost_duration __read_mostly =
+	CONFIG_WAKE_BOOST_DURATION_MS;
 
 module_param(input_boost_freq_lp, uint, 0644);
 module_param(input_boost_freq_hp, uint, 0644);
-module_param(input_boost_duration, short, 0644);
 
-/* The sched_param struct is located elsewhere in newer kernels */
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 10, 0)
-#include <uapi/linux/sched/types.h>
-#endif
+module_param(input_boost_duration, short, 0644);
+module_param(wake_boost_duration, short, 0644);
 
 enum {
 	SCREEN_OFF,
@@ -61,9 +65,9 @@ static unsigned int get_input_boost_freq(struct cpufreq_policy *policy)
 	unsigned int freq;
 
 	if (cpumask_test_cpu(policy->cpu, cpu_lp_mask))
-		freq = max(input_boost_freq_lp, (unsigned int)CONFIG_MIN_FREQ_LP);
+		freq = input_boost_freq_lp;
 	else
-		freq = max(input_boost_freq_hp, (unsigned int)CONFIG_MIN_FREQ_PERF);
+		freq = input_boost_freq_hp;
 
 	return min(freq, policy->max);
 }
@@ -256,7 +260,7 @@ static int msm_drm_notifier_cb(struct notifier_block *nb, unsigned long action,
 	/* Boost when the screen turns on and unboost when it turns off */
 	if (*blank == MSM_DRM_BLANK_UNBLANK) {
 		clear_bit(SCREEN_OFF, &b->state);
-		__cpu_input_boost_kick_max(b, CONFIG_WAKE_BOOST_DURATION_MS);
+		__cpu_input_boost_kick_max(b, wake_boost_duration);
 	} else {
 		set_bit(SCREEN_OFF, &b->state);
 		wake_up(&b->boost_waitq);
