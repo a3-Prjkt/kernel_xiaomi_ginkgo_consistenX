@@ -33,7 +33,6 @@
 #include <linux/sched/topology.h>
 #include <linux/sched/sysctl.h>
 #include <linux/battery_saver.h>
-
 #include <trace/events/power.h>
 
 static LIST_HEAD(cpufreq_policy_list);
