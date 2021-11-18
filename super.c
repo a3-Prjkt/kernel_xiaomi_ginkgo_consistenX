@@ -585,8 +585,8 @@ static int exfat_read_root(struct inode *inode)
 	inode->i_op = &exfat_dir_inode_operations;
 	inode->i_fop = &exfat_dir_operations;
 
-	inode->i_blocks = ((i_size_read(inode) + (sbi->cluster_size - 1))
-			& ~(sbi->cluster_size - 1)) >> inode->i_blkbits;
+	inode->i_blocks = ((i_size_read(inode) + (sbi->cluster_size - 1)) &
+			~((loff_t)sbi->cluster_size - 1)) >> inode->i_blkbits;
 	EXFAT_I(inode)->i_pos = ((loff_t)sbi->root_dir << 32) | 0xffffffff;
 	EXFAT_I(inode)->i_size_aligned = i_size_read(inode);
 	EXFAT_I(inode)->i_size_ondisk = i_size_read(inode);
