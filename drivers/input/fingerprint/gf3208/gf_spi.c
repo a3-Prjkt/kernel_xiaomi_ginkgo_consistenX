@@ -416,16 +416,6 @@ static long gf_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	u8 netlink_route = NETLINK_TEST;
 	struct gf_ioc_chip_info info;
 
-	if (_IOC_TYPE(cmd) != GF_IOC_MAGIC)
-		return -ENODEV;
-
-	if (_IOC_DIR(cmd) & _IOC_READ)
-		retval = !access_ok(VERIFY_WRITE, (void __user *)arg, _IOC_SIZE(cmd));
-	else if (_IOC_DIR(cmd) & _IOC_WRITE)
-		retval = !access_ok(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd));
-	if (retval)
-		return -EFAULT;
-
 	switch (cmd) {
 	case GF_IOC_INIT:
 		pr_debug("%s GF_IOC_INIT\n", __func__);
