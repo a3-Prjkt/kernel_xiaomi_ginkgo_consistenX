@@ -532,14 +532,7 @@ static long gf_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	return retval;
 }
 
-#ifdef CONFIG_COMPAT
-static long gf_compat_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
-{
-	return gf_ioctl(filp, cmd, (unsigned long)compat_ptr(arg));
-}
-#endif /*CONFIG_COMPAT*/
-
- static void notification_work(struct work_struct *work)
+static void notification_work(struct work_struct *work)
 {
 	pr_debug("%s unblank\n", __func__);
 	dsi_bridge_interface_enable(FP_UNLOCK_REJECTION_TIMEOUT);
@@ -647,9 +640,6 @@ static const struct file_operations gf_fops = {
 	 * too, except for the locking.
 	 */
 	.unlocked_ioctl = gf_ioctl,
-#ifdef CONFIG_COMPAT
-	.compat_ioctl = gf_compat_ioctl,
-#endif /*CONFIG_COMPAT*/
 	.open = gf_open,
 	.release = gf_release,
 #ifdef GF_FASYNC
