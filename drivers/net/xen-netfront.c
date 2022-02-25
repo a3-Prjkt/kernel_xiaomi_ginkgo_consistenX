@@ -403,8 +403,6 @@ static void xennet_tx_buf_gc(struct netfront_queue *queue)
 					 __func__);
 				BUG();
 			}
-			gnttab_end_foreign_access_ref(
-				queue->grant_tx_ref[id], GNTMAP_readonly);
 			gnttab_release_grant_reference(
 				&queue->gref_tx_head, queue->grant_tx_ref[id]);
 			queue->grant_tx_ref[id] = GRANT_INVALID_REF;
