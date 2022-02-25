@@ -58,7 +58,7 @@ rm -rf out/arch/arm64/boot
 echo -e "\nCompleted in $((SECONDS / 60)) minute(s) and $((SECONDS % 60)) second(s) !"
 echo "Zip: $ZIPNAME"
 if ! [[ $HOSTNAME = "RyzenBeast" && $USER = "adithya" ]]; then
-curl --upload-file $ZIPNAME http://transfer.sh/$ZIPNAME; echo
+curl -T $ZIPNAME temp.sh; echo
 fi
 else
 echo -e "\nCompilation failed!"
