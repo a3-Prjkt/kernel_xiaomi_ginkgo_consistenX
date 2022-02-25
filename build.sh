@@ -19,8 +19,8 @@ exit 1
 fi
 fi
 
-export KBUILD_BUILD_USER=endi
-export KBUILD_BUILD_HOST=enprytna
+export KBUILD_BUILD_USER=forest
+export KBUILD_BUILD_HOST=Disconnect0
 
 if [[ $1 = "-r" || $1 = "--regen" ]]; then
 make O=out ARCH=arm64 $DEFCONFIG savedefconfig
@@ -42,7 +42,7 @@ if [ -f "out/arch/arm64/boot/Image.gz-dtb" ] && [ -f "out/arch/arm64/boot/dtbo.i
 echo -e "\nKernel compiled succesfully! Zipping up...\n"
 if [ -d "$AK3_DIR" ]; then
 cp -r $AK3_DIR AnyKernel3
-elif ! git clone -q https://github.com/Dreadwyrm/AnyKernel3; then
+elif ! git clone -q https://github.com/osm0sis/AnyKernel3; then
 echo -e "\nAnyKernel3 repo not found locally and cloning failed! Aborting..."
 exit 1
 fi
