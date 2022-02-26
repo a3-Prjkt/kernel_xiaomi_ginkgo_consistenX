@@ -50,6 +50,7 @@
 #include <linux/debugfs.h>
 #include <linux/pm_qos.h>
 #include <linux/cpumask.h>
+#include <linux/stat.h>
 
 #define TZ_PIL_PROTECT_MEM_SUBSYS_ID 0x0C
 #define TZ_PIL_CLEAR_PROTECT_MEM_SUBSYS_ID 0x0D
