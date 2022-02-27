@@ -5,14 +5,14 @@
 
 SECONDS=0 # builtin bash timer
 ZIPNAME="QuicksilveRV2-ginkgo-$(date '+%Y%m%d-%H%M').zip"
-TC_DIR="$HOME/tc/xRageTC-clang"
+TC_DIR="$HOME/tc/azure-clang"
 AK3_DIR="$HOME/android/AnyKernel3"
 DEFCONFIG="vendor/ginkgo-perf_defconfig"
 
 export PATH="$TC_DIR/bin:$PATH"
 
 if ! [ -d "$TC_DIR" ]; then
-echo "xRageTC clang not found! Cloning to $TC_DIR..."
+echo "Azure-clang not found! Cloning to $TC_DIR..."
 if ! git clone -q -b main --depth=1 https://gitlab.com/Panchajanya1999/azure-clang $TC_DIR; then
 echo "Cloning failed! Aborting..."
 exit 1
