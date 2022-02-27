@@ -13,7 +13,7 @@ export PATH="$TC_DIR/bin:$PATH"
 
 if ! [ -d "$TC_DIR" ]; then
 echo "AOSP Clang not found! Cloning to $TC_DIR..."
-if ! git clone -q -b main --depth=1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 $TC_DIR; then
+if ! git clone -q -b main --depth=1 https://gitlab.com/PixelOS-Pixelish/prebuilts_clang_host_linux-x86 $TC_DIR; then
 echo "Cloning failed! Aborting..."
 exit 1
 fi
