@@ -145,12 +145,9 @@ static void do_swap(void *a, void *b, size_t size, swap_func_t swap_func)
 		swap_func(a, b, (int)size);
 }
 
-typedef int (*cmp_func_t)(const void *, const void *);
-typedef int (*cmp_r_func_t)(const void *, const void *, const void *);
 #define _CMP_WRAPPER ((cmp_r_func_t)0L)
 
-static int do_cmp(const void *a, const void *b,
-		  cmp_r_func_t cmp, const void *priv)
+static int do_cmp(const void *a, const void *b, cmp_r_func_t cmp, const void *priv)
 {
 	if (cmp == _CMP_WRAPPER)
 		return ((cmp_func_t)(priv))(a, b);
@@ -176,9 +173,10 @@ static int do_cmp(const void *a, const void *b,
  * O(n*n) worst-case behavior and extra memory requirements that make
  * it less suitable for kernel use.
  */
-void sort(void *base, size_t num, size_t size,
-	  int (*cmp_func)(const void *, const void *),
-	  void (*swap_func)(void *, void *, int size))
+void sort_r(void *base, size_t num, size_t size,
+	    cmp_r_func_t cmp_func,
+	    swap_func_t swap_func,
+	    const void *priv)
 {
 	/* pre-scale counters for performance */
 	size_t n = num * size, a = (num/2) * size;
@@ -239,5 +237,13 @@ void sort(void *base, size_t num, size_t size,
 			swap_func(base + b, base + c, size);
 		}
 	}
+}
+EXPORT_SYMBOL(sort_r);
+
+void sort(void *base, size_t num, size_t size,
+	  cmp_func_t cmp_func,
+	  swap_func_t swap_func)
+{
+	return sort_r(base, num, size, _CMP_WRAPPER, swap_func, cmp_func);
 }
 EXPORT_SYMBOL(sort);
