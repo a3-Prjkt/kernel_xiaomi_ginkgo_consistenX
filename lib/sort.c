@@ -120,6 +120,43 @@ static void swap_bytes(void *a, void *b, int size)
 	} while (n);
 }
 
+/*
+ * The values are arbitrary as long as they can't be confused with
+ * a pointer, but small integers make for the smallest compare
+ * instructions.
+ */
+#define SWAP_WORDS_64 (swap_func_t)0
+#define SWAP_WORDS_32 (swap_func_t)1
+#define SWAP_BYTES    (swap_func_t)2
+
+/*
+ * The function pointer is last to make tail calls most efficient if the
+ * compiler decides not to inline this function.
+ */
+static void do_swap(void *a, void *b, size_t size, swap_func_t swap_func)
+{
+	if (swap_func == SWAP_WORDS_64)
+		swap_words_64(a, b, size);
+	else if (swap_func == SWAP_WORDS_32)
+		swap_words_32(a, b, size);
+	else if (swap_func == SWAP_BYTES)
+		swap_bytes(a, b, size);
+	else
+		swap_func(a, b, (int)size);
+}
+
+typedef int (*cmp_func_t)(const void *, const void *);
+typedef int (*cmp_r_func_t)(const void *, const void *, const void *);
+#define _CMP_WRAPPER ((cmp_r_func_t)0L)
+
+static int do_cmp(const void *a, const void *b,
+		  cmp_r_func_t cmp, const void *priv)
+{
+	if (cmp == _CMP_WRAPPER)
+		return ((cmp_func_t)(priv))(a, b);
+	return cmp(a, b, priv);
+}
+
 /**
  * sort - sort an array of elements
  * @base: pointer to data to sort
