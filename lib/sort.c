@@ -20,7 +20,7 @@
  * is_aligned - is this pointer & size okay for word-wide copying?
  * @base: pointer to data
  * @size: size of each element
- * @align: required aignment (typically 4 or 8)
+ * @align: required alignment (typically 4 or 8)
  *
  * Returns true if elements can be copied using word loads and stores.
  * The size must be a multiple of the alignment, and the base address must
@@ -43,8 +43,9 @@ static bool is_aligned(const void *base, size_t size, unsigned char align)
 
 /**
  * swap_words_32 - swap two elements in 32-bit chunks
- * @a, @b: pointers to the elements
- * @size: element size (must be a multiple of 4)
+ * @a: pointer to the first element to swap
+ * @b: pointer to the second element to swap
+ * @n: element size (must be a multiple of 4)
  *
  * Exchange the two objects in memory.  This exploits base+index addressing,
  * which basically all CPUs have, to minimize loop overhead computations.
@@ -54,10 +55,8 @@ static bool is_aligned(const void *base, size_t size, unsigned char align)
  * subtract (since the intervening mov instructions don't alter the flags).
  * Gcc 8.1.0 doesn't have that problem.
  */
-static void swap_words_32(void *a, void *b, int size)
+static void swap_words_32(void *a, void *b, size_t n)
 {
-	size_t n = (unsigned int)size;
-
 	do {
 		u32 t = *(u32 *)(a + (n -= 4));
 		*(u32 *)(a + n) = *(u32 *)(b + n);
@@ -67,8 +66,9 @@ static void swap_words_32(void *a, void *b, int size)
 
 /**
  * swap_words_64 - swap two elements in 64-bit chunks
- * @a, @b: pointers to the elements
- * @size: element size (must be a multiple of 8)
+ * @a: pointer to the first element to swap
+ * @b: pointer to the second element to swap
+ * @n: element size (must be a multiple of 8)
  *
  * Exchange the two objects in memory.  This exploits base+index
  * addressing, which basically all CPUs have, to minimize loop overhead
@@ -80,10 +80,8 @@ static void swap_words_32(void *a, void *b, int size)
  * but it's possible to have 64-bit loads without 64-bit pointers (e.g.
  * x32 ABI).  Are there any cases the kernel needs to worry about?
  */
-static void swap_words_64(void *a, void *b, int size)
+static void swap_words_64(void *a, void *b, size_t n)
 {
-	size_t n = (unsigned int)size;
-
 	do {
 #ifdef CONFIG_64BIT
 		u64 t = *(u64 *)(a + (n -= 8));
@@ -104,21 +102,22 @@ static void swap_words_64(void *a, void *b, int size)
 
 /**
  * swap_bytes - swap two elements a byte at a time
- * @a, @b: pointers to the elements
- * @size: element size
+ * @a: pointer to the first element to swap
+ * @b: pointer to the second element to swap
+ * @n: element size
  *
  * This is the fallback if alignment doesn't allow using larger chunks.
  */
-static void swap_bytes(void *a, void *b, int size)
+static void swap_bytes(void *a, void *b, size_t n)
 {
-	size_t n = (unsigned int)size;
-
 	do {
 		char t = ((char *)a)[--n];
 		((char *)a)[n] = ((char *)b)[n];
 		((char *)b)[n] = t;
 	} while (n);
 }
+
+typedef void (*swap_func_t)(void *a, void *b, int size);
 
 /*
  * The values are arbitrary as long as they can't be confused with
@@ -145,13 +144,30 @@ static void do_swap(void *a, void *b, size_t size, swap_func_t swap_func)
 		swap_func(a, b, (int)size);
 }
 
-#define _CMP_WRAPPER ((cmp_r_func_t)0L)
-
-static int do_cmp(const void *a, const void *b, cmp_r_func_t cmp, const void *priv)
+/**
+ * parent - given the offset of the child, find the offset of the parent.
+ * @i: the offset of the heap element whose parent is sought.  Non-zero.
+ * @lsbit: a precomputed 1-bit mask, equal to "size & -size"
+ * @size: size of each element
+ *
+ * In terms of array indexes, the parent of element j = @i/@size is simply
+ * (j-1)/2.  But when working in byte offsets, we can't use implicit
+ * truncation of integer divides.
+ *
+ * Fortunately, we only need one bit of the quotient, not the full divide.
+ * @size has a least significant bit.  That bit will be clear if @i is
+ * an even multiple of @size, and set if it's an odd multiple.
+ *
+ * Logically, we're doing "if (i & lsbit) i -= size;", but since the
+ * branch is unpredictable, it's done with a bit of clever branch-free
+ * code instead.
+ */
+__attribute_const__ __always_inline
+static size_t parent(size_t i, unsigned int lsbit, size_t size)
 {
-	if (cmp == _CMP_WRAPPER)
-		return ((cmp_func_t)(priv))(a, b);
-	return cmp(a, b, priv);
+	i -= size;
+	i -= size & -(i & lsbit);
+	return i / 2;
 }
 
 /**
@@ -166,7 +182,7 @@ static int do_cmp(const void *a, const void *b, cmp_r_func_t cmp, const void *pr
  * This function does a heapsort on the given array.  You may provide
  * a swap_func function if you need to do something more than a memory
  * copy (e.g. fix up pointers or auxiliary data), but the built-in swap
- * isn't usually a bottleneck.
+ * avoids a slow retpoline and so is significantly faster.
  *
  * Sorting time is O(n log n) both on average and worst-case. While
  * quicksort is slightly faster on average, it suffers from exploitable
