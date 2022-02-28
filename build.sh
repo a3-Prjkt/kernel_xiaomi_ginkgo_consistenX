@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-# Compile script for QuicksilveR kernel
+# Compile script for ConsIstenX/QuicksilveR kernel
 # Copyright (C) 2020-2021 Adithya R.
 
 SECONDS=0 # builtin bash timer
-ZIPNAME="QuicksilveRV2-ginkgo-$(date '+%Y%m%d-%H%M').zip"
+ZIPNAME="CIsX~v0.1beta-Kernel-ginkgo-$(date '+%Y%m%d-%H%M').zip"
 TC_DIR="$HOME/tc/xRageTC-clang"
 AK3_DIR="$HOME/android/AnyKernel3"
 DEFCONFIG="vendor/ginkgo-perf_defconfig"
