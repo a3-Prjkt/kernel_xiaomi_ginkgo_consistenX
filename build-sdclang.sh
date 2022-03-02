@@ -8,7 +8,7 @@ ZIPNAME="CIsX~v1-ginkgo-$(date '+%Y%m%d-%H%M').zip"
 TC_DIR="$HOME/tc/sdclang"
 GCC_DIR="$HOME/tc/gcc"
 GCC64_DIR="$HOME/tc/gcc64"
-AK3_DIR="$HOME/android/AnyKernel3"
+AK3_DIR="./ak3"
 DEFCONFIG="vendor/ginkgo-perf_defconfig"
 
 export PATH="${TC_DIR}/compiler/bin:${GCC64_DIR}/bin:${GCC_DIR}/bin:/usr/bin:${PATH}"
