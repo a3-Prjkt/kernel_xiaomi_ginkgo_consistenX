@@ -6,7 +6,7 @@
 SECONDS=0 # builtin bash timer
 ZIPNAME="CIsX~v1-ginkgo-$(date '+%Y%m%d-%H%M').zip"
 TC_DIR="$HOME/tc/xRageTC-clang"
-AK3_DIR="$HOME/android/AnyKernel3"
+AK3_DIR="./ak3"
 DEFCONFIG="vendor/ginkgo-perf_defconfig"
 
 export PATH="$TC_DIR/bin:$PATH"
