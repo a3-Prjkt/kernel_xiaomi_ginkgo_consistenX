@@ -62,4 +62,5 @@ curl -T $ZIPNAME temp.sh; echo
 fi
 else
 echo -e "\nCompilation failed!"
+exit 1
 fi
