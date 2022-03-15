@@ -8,7 +8,7 @@
 
 SECONDS=0 # builtin bash timer
 ZIPNAME="CIsX~v1-ginkgo-$(date '+%Y%m%d-%H%M').zip"
-TC_DIR="workspace/tc"
+TC_DIR="/workspace/tc"
 AK3_DIR="./ak3"
 DEFCONFIG="vendor/ginkgo-perf_defconfig"
 
