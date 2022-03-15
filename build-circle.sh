@@ -2,10 +2,13 @@
 #
 # Compile script for ConsIstenX/QuicksilveR kernel
 # Copyright (C) 2020-2021 Adithya R.
+# Made this for Gitpod Users
+# Because of Reinstallation the TC again after the Workspace is Closed
+# This Modifed TC_DIR Would save you some Precious Time - Disconnect0
 
 SECONDS=0 # builtin bash timer
 ZIPNAME="CIsX~v1-ginkgo-$(date '+%Y%m%d-%H%M').zip"
-TC_DIR="$HOME/tc/xRageTC-clang"
+TC_DIR="workspace/tc"
 AK3_DIR="./ak3"
 DEFCONFIG="vendor/ginkgo-perf_defconfig"
 
@@ -62,5 +65,4 @@ curl -T $ZIPNAME temp.sh; echo
 fi
 else
 echo -e "\nCompilation failed!"
-exit 1
 fi
