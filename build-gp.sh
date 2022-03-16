@@ -7,7 +7,7 @@
 # This Modifed TC_DIR Would save you some Precious Time - Disconnect0
 
 SECONDS=0 # builtin bash timer
-ZIPNAME="CIsX~v1-Ginkgo/Willow-$(date '+%Y%m%d-%H%M').zip"
+ZIPNAME="CIsX~v1-Ginkgo|Willow-$(date '+%Y%m%d-%H%M').zip"
 TC_DIR="/workspace/tc"
 AK3_DIR="./ak3"
 DEFCONFIG="vendor/ginkgo-perf_defconfig"
