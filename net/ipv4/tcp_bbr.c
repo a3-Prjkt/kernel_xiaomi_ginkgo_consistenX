@@ -480,7 +480,7 @@ static void bbr_set_cwnd(struct sock *sk, const struct rate_sample *rs,
 	 * due to aggregation (of data and/or ACKs) visible in the ACK stream.
 	 */
 	target_cwnd += bbr_ack_aggregation_cwnd(sk);
-	target_cwnd = bbr_quantization_budget(sk, target_cwnd, gain);
+	target_cwnd = bbr_quantization_budget(sk, target_cwnd);
 
 	/* If we're below target cwnd, slow start cwnd toward target cwnd. */
 	target_cwnd = bbr_bdp(sk, bw, gain);
