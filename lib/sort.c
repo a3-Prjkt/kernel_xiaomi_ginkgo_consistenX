@@ -117,6 +117,8 @@ static void swap_bytes(void *a, void *b, size_t n)
 	} while (n);
 }
 
+typedef void (*swap_func_t)(void *a, void *b, int size);
+
 /*
  * The values are arbitrary as long as they can't be confused with
  * a pointer, but small integers make for the smallest compare
@@ -140,15 +142,6 @@ static void do_swap(void *a, void *b, size_t size, swap_func_t swap_func)
 		swap_bytes(a, b, size);
 	else
 		swap_func(a, b, (int)size);
-}
-
-#define _CMP_WRAPPER ((cmp_r_func_t)0L)
-
-static int do_cmp(const void *a, const void *b, cmp_r_func_t cmp, const void *priv)
-{
-	if (cmp == _CMP_WRAPPER)
-		return ((cmp_func_t)(priv))(a, b);
-	return cmp(a, b, priv);
 }
 
 /**
@@ -178,7 +171,7 @@ static size_t parent(size_t i, unsigned int lsbit, size_t size)
 }
 
 /**
- * sort_r - sort an array of elements
+ * sort - sort an array of elements
  * @base: pointer to data to sort
  * @num: number of elements
  * @size: size of each element
@@ -210,11 +203,11 @@ void sort_r(void *base, size_t num, size_t size,
 
 	if (!swap_func) {
 		if (is_aligned(base, size, 8))
-			swap_func = SWAP_WORDS_64;
+			swap_func = swap_words_64;
 		else if (is_aligned(base, size, 4))
-			swap_func = SWAP_WORDS_32;
+			swap_func = swap_words_32;
 		else
-			swap_func = SWAP_BYTES;
+			swap_func = swap_bytes;
 	}
 
 	/*
@@ -230,7 +223,7 @@ void sort_r(void *base, size_t num, size_t size,
 		if (a)			/* Building heap: sift down --a */
 			a -= size;
 		else if (n -= size)	/* Sorting: Extract root to --n */
-			do_swap(base, base + n, size, swap_func);
+			swap_func(base, base + n, size);
 		else			/* Sort complete */
 			break;
 
@@ -247,17 +240,17 @@ void sort_r(void *base, size_t num, size_t size,
 		 * average, 3/4 worst-case.)
 		 */
 		for (b = a; c = 2*b + size, (d = c + size) < n;)
-			b = do_cmp(base + c, base + d, cmp_func, priv) >= 0 ? c : d;
+			b = cmp_func(base + c, base + d) >= 0 ? c : d;
 		if (d == n)	/* Special case last leaf with no sibling */
 			b = c;
 
 		/* Now backtrack from "b" to the correct location for "a" */
-		while (b != a && do_cmp(base + a, base + b, cmp_func, priv) >= 0)
+		while (b != a && cmp_func(base + a, base + b) >= 0)
 			b = parent(b, lsbit, size);
 		c = b;			/* Where "a" belongs */
 		while (b != a) {	/* Shift it into place */
 			b = parent(b, lsbit, size);
-			do_swap(base + b, base + c, size, swap_func);
+			swap_func(base + b, base + c, size);
 		}
 	}
 }
