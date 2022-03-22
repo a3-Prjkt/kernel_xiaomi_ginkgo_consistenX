@@ -37,6 +37,7 @@ set_perm_recursive 0 0 750 750 $ramdisk/init* $ramdisk/sbin;
 
 
 ## AnyKernel boot install
+dump_boot;
 
 if mountpoint -q /data; then
   # Optimize F2FS extension list (@arter97)
@@ -81,7 +82,6 @@ if mountpoint -q /data; then
   done
 fi
 
-dump_boot;
 write_boot;
 ## end boot install
 
