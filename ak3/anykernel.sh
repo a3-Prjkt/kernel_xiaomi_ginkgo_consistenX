@@ -23,6 +23,7 @@ supported.patchlevels=
 block=/dev/block/bootdevice/by-name/boot;
 is_slot_device=0;
 ramdisk_compression=auto;
+patch_vbmeta_flag=auto;
 
 
 ## AnyKernel methods (DO NOT CHANGE)
@@ -37,7 +38,7 @@ set_perm_recursive 0 0 750 750 $ramdisk/init* $ramdisk/sbin;
 
 
 ## AnyKernel boot install
-dump_boot;
+split_boot;
 
 if mountpoint -q /data; then
   # Optimize F2FS extension list (@arter97)
@@ -82,7 +83,8 @@ if mountpoint -q /data; then
   done
 fi
 
-write_boot;
+flash_boot;
+flash_dtbo;
 ## end boot install
 
 
