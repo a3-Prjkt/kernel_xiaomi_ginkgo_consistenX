@@ -713,10 +713,10 @@ KBUILD_CFLAGS	+= -mllvm -polly \
 		   -mllvm -polly-invariant-load-hoisting
 endif
 
-ifeq ($(cc-name),gcc)
-KBUILD_CFLAGS += -mtune=cortex-a73.cortex-a53 -march=armv8-a
-else ifeq ($(cc-name),clang)
+ifeq ($(cc-name),clang)
 KBUILD_CFLAGS += -mcpu=cortex-a53 -mtune=cortex-a53
+else ifeq ($(cc-name),gcc)
+KBUILD_CFLAGS += -mtune=cortex-a73.cortex-a53 -march=armv8-a
 endif
 
 KBUILD_CFLAGS	+= $(call cc-option,-fno-delete-null-pointer-checks,)
