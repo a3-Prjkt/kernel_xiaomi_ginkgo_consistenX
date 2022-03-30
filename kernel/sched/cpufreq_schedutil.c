@@ -156,6 +156,15 @@ static inline bool use_pelt(void)
 #endif
 }
 
+static inline bool conservative_pl(void)
+{
+#ifdef CONFIG_SCHED_WALT
+	return sysctl_sched_conservative_pl;
+#else
+	return false;
+#endif
+}
+
 static unsigned long freq_to_util(struct sugov_policy *sg_policy,
 				  unsigned int freq)
 {
@@ -335,6 +344,7 @@ static void sugov_walt_adjust(struct sugov_cpu *sg_cpu, unsigned long *util,
 	unsigned long nl = sg_cpu->walt_load.nl;
 	unsigned long cpu_util = sg_cpu->util;
 	bool is_hiload;
+	unsigned long pl = sg_cpu->walt_load.pl;
 
 	if (use_pelt())
 		return;
@@ -352,8 +362,11 @@ static void sugov_walt_adjust(struct sugov_cpu *sg_cpu, unsigned long *util,
 	if (is_hiload && nl >= mult_frac(cpu_util, NL_RATIO, 100))
 		*util = *max;
 
-	if (sg_policy->tunables->pl)
-		*util = max(*util, sg_cpu->walt_load.pl);
+	if (sg_policy->tunables->pl && pl > *util) {
+		if (conservative_pl() || is_battery_saver_on())
+			pl = mult_frac(pl, TARGET_LOAD, 100);
+		*util = (*util + pl) / 2;
+	}
 }
 
 static inline unsigned long target_util(struct sugov_policy *sg_policy,
