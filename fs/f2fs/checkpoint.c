@@ -98,6 +98,7 @@ repeat:
 	}
 
 	if (unlikely(!PageUptodate(page))) {
+		f2fs_handle_page_eio(sbi, page->index, META);
 		f2fs_put_page(page, 1);
 		return ERR_PTR(-EIO);
 	}
