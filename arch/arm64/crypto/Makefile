@@ -51,7 +51,7 @@ obj-$(CONFIG_CRYPTO_AES_ARM64_BS) += aes-neon-bs.o
 aes-neon-bs-y := aes-neonbs-core.o aes-neonbs-glue.o
 
 ifeq ($(cc-name),clang)
-ccflags-y += -mcpu=cortex-a53 -mtune=cortex-a53
+ccflags-y += -mcpu=cortex-a53+crypto
 else ifeq ($(cc-name),gcc)
 ccflags-y += -mtune=cortex-a73.cortex-a53 -march=armv8-a+crc+crypto
 endif
