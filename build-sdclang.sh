@@ -4,7 +4,7 @@
 # Copyright (C) 2020-2021 Adithya R.
 
 SECONDS=0 # builtin bash timer
-ZIPNAME="CIsX~v1-Ginkgo|Willow-$(TZ=Asia/Manila date +"%Y%m%d-%H%M").zip"
+ZIPNAME="CIsX~vTEST-Ginkgo|Willow-$(TZ=Asia/Manila date +"%Y%m%d-%H%M").zip"
 TC_DIR="$HOME/tc/sdclang"
 GCC_DIR="$HOME/tc/gcc"
 GCC64_DIR="$HOME/tc/gcc64"
