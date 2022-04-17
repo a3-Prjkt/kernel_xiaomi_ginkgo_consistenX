@@ -1453,6 +1453,7 @@ page_hit:
 		err = -EINVAL;
 out_err:
 		ClearPageUptodate(page);
+		f2fs_handle_page_eio(sbi, page->index, NODE);
 		f2fs_put_page(page, 1);
 		return ERR_PTR(err);
 	}
