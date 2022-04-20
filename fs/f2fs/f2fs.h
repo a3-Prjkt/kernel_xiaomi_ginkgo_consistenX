@@ -4599,6 +4599,9 @@ static inline void f2fs_io_schedule_timeout(long timeout)
 static inline void f2fs_handle_page_eio(struct f2fs_sb_info *sbi, pgoff_t ofs,
 					enum page_type type)
 {
+	if (unlikely(f2fs_cp_error(sbi)))
+		return;
+
 	if (ofs == sbi->page_eio_ofs[type]) {
 		if (sbi->page_eio_cnt[type]++ == MAX_RETRY_PAGE_EIO)
 			set_ckpt_flags(sbi, CP_ERROR_FLAG);
