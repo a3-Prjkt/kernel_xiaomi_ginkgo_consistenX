@@ -11,6 +11,10 @@ GCC64_DIR="$HOME/tc/gcc64"
 AK3_DIR="./ak3"
 DEFCONFIG="vendor/ginkgo-perf_defconfig"
 
+# Install libncurses5 and dev version of it
+sudo apt install -y libncurses5 \
+libncurses5-dev
+
 export PATH="${TC_DIR}/compiler/bin:${GCC64_DIR}/bin:${GCC_DIR}/bin:/usr/bin:${PATH}"
 
 if ! [ -d "$TC_DIR" ]; then
