@@ -33,6 +33,7 @@
 #include <linux/sched/topology.h>
 #include <linux/sched/sysctl.h>
 #include <linux/battery_saver.h>
+
 #include <trace/events/power.h>
 
 static LIST_HEAD(cpufreq_policy_list);
@@ -726,8 +727,12 @@ static ssize_t store_##file_name					\
 	int ret, temp;							\
 	struct cpufreq_policy new_policy;				\
 									\
-	if (&policy->object == &policy->min &&				\
-			is_battery_saver_on())				\
+	if (IS_ENABLED(CONFIG_CPU_INPUT_BOOST) && 			\
+	    &policy->object == &policy->min)				\
+		return count;						\
+									\
+	if (IS_ENABLED(CONFIG_CPU_INPUT_BOOST) && 			\
+	    &policy->object == &policy->max)				\
 		return count;						\
 									\
 	memcpy(&new_policy, policy, sizeof(*policy));			\
@@ -771,9 +776,7 @@ static ssize_t show_cpuinfo_cur_freq(struct cpufreq_policy *policy,
  */
 static ssize_t show_scaling_governor(struct cpufreq_policy *policy, char *buf)
 {
-	if (is_battery_saver_on())
-		return sprintf(buf, "powersave\n");
-	else if (policy->policy == CPUFREQ_POLICY_POWERSAVE)
+	if ((policy->policy == CPUFREQ_POLICY_POWERSAVE) || is_battery_saver_on())
 		return sprintf(buf, "powersave\n");
 	else if (policy->policy == CPUFREQ_POLICY_PERFORMANCE)
 		return sprintf(buf, "performance\n");
