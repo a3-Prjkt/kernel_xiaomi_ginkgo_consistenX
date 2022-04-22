@@ -211,7 +211,8 @@ struct exfat_mount_options {
 	/* on error: continue, panic, remount-ro */
 	enum exfat_error_mode errors;
 	unsigned utf8:1, /* Use of UTF-8 character set */
-		 discard:1; /* Issue discard requests on deletions */
+		 discard:1, /* Issue discard requests on deletions */
+		 keep_last_dots:1; /* Keep trailing periods in paths */
 	int time_offset; /* Offset of timestamps from UTC (in minutes) */
 };
 
@@ -272,6 +273,8 @@ struct exfat_inode_info {
 	 * the validation of hint_stat.
 	 */
 	unsigned int version;
+	/* file offset or dentry index for readdir */
+	loff_t rwoffset;
 
 	/* hint for cluster last accessed */
 	struct exfat_hint hint_bmap;
@@ -415,7 +418,7 @@ int exfat_count_num_clusters(struct super_block *sb,
 int exfat_load_bitmap(struct super_block *sb);
 void exfat_free_bitmap(struct exfat_sb_info *sbi);
 int exfat_set_bitmap(struct inode *inode, unsigned int clu);
-void exfat_clear_bitmap(struct inode *inode, unsigned int clu);
+void exfat_clear_bitmap(struct inode *inode, unsigned int clu, bool sync);
 unsigned int exfat_find_free_bitmap(struct super_block *sb, unsigned int clu);
 int exfat_count_used_clusters(struct super_block *sb, unsigned int *ret_count);
 
@@ -461,13 +464,10 @@ void exfat_update_dir_chksum_with_entry_set(struct exfat_entry_set_cache *es);
 int exfat_calc_num_entries(struct exfat_uni_name *p_uniname);
 int exfat_find_dir_entry(struct super_block *sb, struct exfat_inode_info *ei,
 		struct exfat_chain *p_dir, struct exfat_uni_name *p_uniname,
-		int num_entries, unsigned int type);
+		int num_entries, unsigned int type, struct exfat_hint *hint_opt);
 int exfat_alloc_new_dir(struct inode *inode, struct exfat_chain *clu);
-int exfat_find_location(struct super_block *sb, struct exfat_chain *p_dir,
-		int entry, sector_t *sector, int *offset);
 struct exfat_dentry *exfat_get_dentry(struct super_block *sb,
-		struct exfat_chain *p_dir, int entry, struct buffer_head **bh,
-		sector_t *sector);
+		struct exfat_chain *p_dir, int entry, struct buffer_head **bh);
 struct exfat_dentry *exfat_get_dentry_cached(struct exfat_entry_set_cache *es,
 		int num);
 struct exfat_entry_set_cache *exfat_get_dentry_set(struct super_block *sb,

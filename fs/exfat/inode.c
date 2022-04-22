@@ -29,7 +29,7 @@ static int __exfat_write_inode(struct inode *inode, int sync)
 		return 0;
 
 	/*
-	 * If the indode is already unlinked, there is no need for updating it.
+	 * If the inode is already unlinked, there is no need for updating it.
 	 */
 	if (ei->dir.dir == DIR_DELETED)
 		return 0;
@@ -111,6 +111,8 @@ static int exfat_map_cluster(struct inode *inode, unsigned int clu_offset,
 	struct exfat_inode_info *ei = EXFAT_I(inode);
 	unsigned int local_clu_offset = clu_offset;
 	unsigned int num_to_be_allocated = 0, num_clusters = 0;
+
+	ei->rwoffset = EXFAT_CLU_TO_B(clu_offset, sbi);
 
 	if (EXFAT_I(inode)->i_size_ondisk > 0)
 		num_clusters =
@@ -553,7 +555,7 @@ static int exfat_fill_inode(struct inode *inode, struct exfat_dir_entry *info)
 	struct exfat_inode_info *ei = EXFAT_I(inode);
 	loff_t size = info->size;
 
-	ei->dir = info->dir;
+	memcpy(&ei->dir, &info->dir, sizeof(struct exfat_chain));
 	ei->entry = info->entry;
 	ei->attr = info->attr;
 	ei->start_clu = info->start_clu;
@@ -564,6 +566,7 @@ static int exfat_fill_inode(struct inode *inode, struct exfat_dir_entry *info)
 	ei->hint_stat.eidx = 0;
 	ei->hint_stat.clu = info->start_clu;
 	ei->hint_femp.eidx = EXFAT_HINT_NONE;
+	ei->rwoffset = 0;
 	ei->hint_bmap.off = EXFAT_EOF_CLUSTER;
 	ei->i_pos = 0;
 
@@ -601,7 +604,7 @@ static int exfat_fill_inode(struct inode *inode, struct exfat_dir_entry *info)
 	exfat_save_attr(inode, info->attr);
 
 	inode->i_blocks = ((i_size_read(inode) + (sbi->cluster_size - 1)) &
-		~(sbi->cluster_size - 1)) >> inode->i_blkbits;
+		~((loff_t)sbi->cluster_size - 1)) >> inode->i_blkbits;
 	inode->i_mtime = info->mtime;
 	inode->i_ctime = info->mtime;
 	ei->i_crtime = info->crtime;

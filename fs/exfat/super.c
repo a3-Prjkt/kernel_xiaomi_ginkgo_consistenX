@@ -177,6 +177,8 @@ static int exfat_show_options(struct seq_file *m, struct dentry *root)
 		seq_puts(m, ",errors=remount-ro");
 	if (opts->discard)
 		seq_puts(m, ",discard");
+	if (opts->keep_last_dots)
+		seq_puts(m, ",keep_last_dots");
 	if (opts->time_offset)
 		seq_printf(m, ",time_offset=%d", opts->time_offset);
 	return 0;
@@ -421,6 +423,7 @@ static int exfat_read_root(struct inode *inode)
 	ei->flags = ALLOC_FAT_CHAIN;
 	ei->type = TYPE_DIR;
 	ei->version = 0;
+	ei->rwoffset = 0;
 	ei->hint_bmap.off = EXFAT_EOF_CLUSTER;
 	ei->hint_stat.eidx = 0;
 	ei->hint_stat.clu = sbi->root_dir;
@@ -444,8 +447,8 @@ static int exfat_read_root(struct inode *inode)
 	inode->i_op = &exfat_dir_inode_operations;
 	inode->i_fop = &exfat_dir_operations;
 
-	inode->i_blocks = ((i_size_read(inode) + (sbi->cluster_size - 1))
-			& ~(sbi->cluster_size - 1)) >> inode->i_blkbits;
+	inode->i_blocks = ((i_size_read(inode) + (sbi->cluster_size - 1)) &
+			~((loff_t)sbi->cluster_size - 1)) >> inode->i_blkbits;
 	EXFAT_I(inode)->i_pos = ((loff_t)sbi->root_dir << 32) | 0xffffffff;
 	EXFAT_I(inode)->i_size_aligned = i_size_read(inode);
 	EXFAT_I(inode)->i_size_ondisk = i_size_read(inode);
@@ -755,7 +758,7 @@ static int exfat_fill_super(struct super_block *sb, void *data, int silent)
 	if (!sb->s_root) {
 		exfat_err(sb, "failed to get the root dentry");
 		err = -ENOMEM;
-		goto put_inode;
+		goto free_table;
 	}
 
 	return 0;
