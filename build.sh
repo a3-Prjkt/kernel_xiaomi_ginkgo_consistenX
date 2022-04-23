@@ -5,7 +5,7 @@
 
 SECONDS=0 # builtin bash timer
 ZIPNAME="CIsX~v1-Ginkgo|Willow-$(TZ=Asia/Manila date +"%Y%m%d-%H%M").zip"
-TC_DIR="$HOME/tc/xRageTC-clang"
+TC_DIR="$HOME/tc/a3-clang"
 AK3_DIR="./ak3"
 DEFCONFIG="vendor/ginkgo-perf_defconfig"
 
@@ -13,7 +13,7 @@ export PATH="$TC_DIR/bin:$PATH"
 
 if ! [ -d "$TC_DIR" ]; then
 echo "xRageTC clang not found! Cloning to $TC_DIR..."
-if ! git clone -q -b main --depth=1 https://github.com/xyz-prjkt/xRageTC-clang $TC_DIR; then
+if ! git clone -q -b master --depth=1 https://github.com/a3-Prjkt/a3-clang $TC_DIR; then
 echo "Cloning failed! Aborting..."
 exit 1
 fi
