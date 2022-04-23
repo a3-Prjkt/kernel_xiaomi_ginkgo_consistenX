@@ -13,6 +13,7 @@
 #include <linux/battery_saver.h>
 #include <linux/moduleparam.h>
 #include <linux/slab.h>
+#include <linux/battery_saver.h>
 #include <linux/moduleparam.h>
 #include <uapi/linux/sched/types.h>
 

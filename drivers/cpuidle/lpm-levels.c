@@ -83,6 +83,10 @@ struct lpm_debug {
 	uint32_t arg4;
 };
 
+#define MAX_S2IDLE_CPU_ATTEMPTS  32   /* divide by # cpus for max suspends */
+
+#define MAX_S2IDLE_CPU_ATTEMPTS  32   /* divide by # cpus for max suspends */
+
 static struct system_pm_ops *sys_pm_ops;
 
 
@@ -93,8 +97,8 @@ struct lpm_cluster *lpm_root_node;
 static bool lpm_prediction = true;
 module_param_named(lpm_prediction, lpm_prediction, bool, 0664);
 
-static bool lpm_ipi_prediction = true;
-module_param_named(lpm_ipi_prediction, lpm_ipi_prediction, bool, 0664);
+static uint32_t bias_hyst;
+module_param_named(bias_hyst, bias_hyst, uint, 0664);
 
 struct lpm_history {
 	uint32_t resi[MAXSAMPLES];
@@ -106,14 +110,8 @@ struct lpm_history {
 	int64_t stime;
 };
 
-struct ipi_history {
-	uint32_t interval[MAXSAMPLES];
-	uint32_t current_ptr;
-	ktime_t cpu_idle_resched_ts;
-};
-
 static DEFINE_PER_CPU(struct lpm_history, hist);
-static DEFINE_PER_CPU(struct ipi_history, cpu_ipi_history);
+
 static DEFINE_PER_CPU(struct lpm_cpu*, cpu_lpm);
 static bool suspend_in_progress;
 static struct hrtimer lpm_hrtimer;
@@ -473,63 +471,14 @@ static void biastimer_start(uint32_t time_ns)
 	hrtimer_start(cpu_biastimer, bias_ktime, HRTIMER_MODE_REL_PINNED);
 }
 
-static uint64_t find_deviation(int *interval, uint32_t ref_stddev,
-				int64_t *stime)
-{
-	int divisor, i;
-	uint64_t max, avg, stddev;
-	int64_t thresh = LLONG_MAX;
-
-	do {
-		max = avg = divisor = stddev = 0;
-		for (i = 0; i < MAXSAMPLES; i++) {
-			int64_t value = interval[i];
-
-			if (value <= thresh) {
-				avg += value;
-				divisor++;
-				if (value > max)
-					max = value;
-			}
-		}
-		do_div(avg, divisor);
-
-		for (i = 0; i < MAXSAMPLES; i++) {
-			int64_t value = interval[i];
-
-			if (value <= thresh) {
-				int64_t diff = value - avg;
-
-				stddev += diff * diff;
-			}
-		}
-		do_div(stddev, divisor);
-		stddev = int_sqrt(stddev);
-
-	/*
-	 * If the deviation is less, return the average, else
-	 * ignore one maximum sample and retry
-	 */
-		if (((avg > stddev * 6) && (divisor >= (MAXSAMPLES - 1)))
-					|| stddev <= ref_stddev) {
-			*stime = ktime_to_us(ktime_get()) + avg;
-			return avg;
-		}
-		thresh = max - 1;
-
-	} while (divisor > (MAXSAMPLES - 1));
-
-	return 0;
-}
-
 static uint64_t lpm_cpuidle_predict(struct cpuidle_device *dev,
 		struct lpm_cpu *cpu, int *idx_restrict,
-		uint32_t *idx_restrict_time, uint32_t *ipi_predicted)
+		uint32_t *idx_restrict_time)
 {
-	int i, j;
-	uint64_t avg;
+	int i, j, divisor;
+	uint64_t max, avg, stddev;
+	int64_t thresh = LLONG_MAX;
 	struct lpm_history *history = &per_cpu(hist, dev->cpu);
-	struct ipi_history *ipi_history = &per_cpu(cpu_ipi_history, dev->cpu);
 
 	if (!lpm_prediction || !cpu->lpm_prediction)
 		return 0;
@@ -560,9 +509,44 @@ static uint64_t lpm_cpuidle_predict(struct cpuidle_device *dev,
 	 * that mode.
 	 */
 
-	avg = find_deviation(history->resi, cpu->ref_stddev, &(history->stime));
-	if (avg)
+again:
+	max = avg = divisor = stddev = 0;
+	for (i = 0; i < MAXSAMPLES; i++) {
+		int64_t value = history->resi[i];
+
+		if (value <= thresh) {
+			avg += value;
+			divisor++;
+			if (value > max)
+				max = value;
+		}
+	}
+	do_div(avg, divisor);
+
+	for (i = 0; i < MAXSAMPLES; i++) {
+		int64_t value = history->resi[i];
+
+		if (value <= thresh) {
+			int64_t diff = value - avg;
+
+			stddev += diff * diff;
+		}
+	}
+	do_div(stddev, divisor);
+	stddev = int_sqrt(stddev);
+
+	/*
+	 * If the deviation is less, return the average, else
+	 * ignore one maximum sample and retry
+	 */
+	if (((avg > stddev * 6) && (divisor >= (MAXSAMPLES - 1)))
+					|| stddev <= cpu->ref_stddev) {
+		history->stime = ktime_to_us(ktime_get()) + avg;
 		return avg;
+	} else if (divisor  > (MAXSAMPLES - 1)) {
+		thresh = max - 1;
+		goto again;
+	}
 
 	/*
 	 * Find the number of premature exits for each of the mode,
@@ -605,18 +589,6 @@ static uint64_t lpm_cpuidle_predict(struct cpuidle_device *dev,
 			}
 		}
 	}
-
-	if (*idx_restrict_time || !cpu->ipi_prediction || !lpm_ipi_prediction)
-		return 0;
-
-	avg = find_deviation(ipi_history->interval, cpu->ref_stddev
-						+ DEFAULT_IPI_STDDEV,
-						&(history->stime));
-	if (avg) {
-		*ipi_predicted = 1;
-		return avg;
-	}
-
 	return 0;
 }
 
@@ -695,7 +667,7 @@ static int cpu_power_select(struct cpuidle_device *dev,
 	int i, idx_restrict;
 	uint32_t lvl_latency_us = 0;
 	uint64_t predicted = 0;
-	uint32_t htime = 0, idx_restrict_time = 0, ipi_predicted = 0;
+	uint32_t htime = 0, idx_restrict_time = 0;
 	uint32_t next_wakeup_us = (uint32_t)sleep_us;
 	uint32_t min_residency, max_residency;
 	struct power_params *pwr_params;
@@ -736,7 +708,7 @@ static int cpu_power_select(struct cpuidle_device *dev,
 			if (next_wakeup_us > max_residency) {
 				predicted = (lpm_cpuidle_predict(dev, cpu,
 					&idx_restrict,
-					&idx_restrict_time, &ipi_predicted) == 1) ? 0 :
+					&idx_restrict_time) == 1) ? 0 :
 						(max_residency >> 1);
 				if (predicted && (predicted < min_residency))
 					predicted = min_residency;
@@ -774,9 +746,7 @@ static int cpu_power_select(struct cpuidle_device *dev,
 	if ((predicted || (idx_restrict != (cpu->nlevels + 1)))
 			&& (best_level < (cpu->nlevels-1))) {
 		htime = predicted + cpu->tmr_add;
-		if (lpm_ipi_prediction && cpu->ipi_prediction)
-			htime += DEFAULT_IPI_TIMER_ADD;
-		if (!predicted)
+		if (htime == cpu->tmr_add)
 			htime = idx_restrict_time;
 		else if (htime > max_residency)
 			htime = max_residency;
@@ -789,8 +759,8 @@ static int cpu_power_select(struct cpuidle_device *dev,
 done_select:
 	trace_cpu_power_select(best_level, sleep_us, latency_us, next_event_us);
 
-	trace_cpu_pred_select(idx_restrict_time ? 2 : (ipi_predicted ?
-				3 : (predicted ? 1 : 0)), predicted, htime);
+	trace_cpu_pred_select(idx_restrict_time ? 2 : (predicted ? 1 : 0),
+			predicted, htime);
 
 	return best_level;
 }
@@ -1429,20 +1399,6 @@ static int lpm_cpuidle_select(struct cpuidle_driver *drv,
 	return cpu_power_select(dev, cpu);
 }
 
-void update_ipi_history(int cpu)
-{
-	struct ipi_history *history = &per_cpu(cpu_ipi_history, cpu);
-	ktime_t now = ktime_get();
-
-	history->interval[history->current_ptr] =
-			ktime_to_us(ktime_sub(now,
-			history->cpu_idle_resched_ts));
-	(history->current_ptr)++;
-	if (history->current_ptr >= MAXSAMPLES)
-		history->current_ptr = 0;
-	history->cpu_idle_resched_ts = now;
-}
-
 static void update_history(struct cpuidle_device *dev, int idx)
 {
 	struct lpm_history *history = &per_cpu(hist, dev->cpu);
@@ -1524,6 +1480,10 @@ exit:
 static void lpm_cpuidle_s2idle(struct cpuidle_device *dev,
 		struct cpuidle_driver *drv, int idx)
 {
+	static DEFINE_SPINLOCK(s2idle_lock);
+	static struct cpumask idling_cpus;
+	static int s2idle_sleep_attempts;
+	static bool s2idle_aborted;
 	struct lpm_cpu *cpu = per_cpu(cpu_lpm, dev->cpu);
 	const struct cpumask *cpumask = get_cpu_mask(dev->cpu);
 	bool success = false;
@@ -1537,6 +1497,27 @@ static void lpm_cpuidle_s2idle(struct cpuidle_device *dev,
 		return;
 	}
 
+	spin_lock(&s2idle_lock);
+	if (cpumask_empty(&idling_cpus)) {
+		s2idle_sleep_attempts = 0;
+		s2idle_aborted = false;
+	} else if (s2idle_aborted) {
+		spin_unlock(&s2idle_lock);
+		return;
+	}
+
+	cpumask_or(&idling_cpus, &idling_cpus, cpumask);
+	if (++s2idle_sleep_attempts > MAX_S2IDLE_CPU_ATTEMPTS) {
+		s2idle_aborted = true;
+	}
+	spin_unlock(&s2idle_lock);
+
+	if (s2idle_aborted) {
+		pr_err("Aborting s2idle suspend: too many iterations\n");
+		pm_system_wakeup();
+		goto exit;
+	}
+
 	cpu_prepare(cpu, idx, true);
 	cluster_prepare(cpu->parent, cpumask, idx, false, 0);
 
@@ -1544,6 +1525,11 @@ static void lpm_cpuidle_s2idle(struct cpuidle_device *dev,
 
 	cluster_unprepare(cpu->parent, cpumask, idx, false, 0, success);
 	cpu_unprepare(cpu, idx, true);
+
+exit:
+	spin_lock(&s2idle_lock);
+	cpumask_andnot(&idling_cpus, &idling_cpus, cpumask);
+	spin_unlock(&s2idle_lock);
 }
 
 #ifdef CONFIG_CPU_IDLE_MULTIPLE_DRIVERS

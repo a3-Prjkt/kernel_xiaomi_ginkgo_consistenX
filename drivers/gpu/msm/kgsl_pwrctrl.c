@@ -899,6 +899,7 @@ static ssize_t __timer_store(struct device *dev, struct device_attribute *attr,
 	struct kgsl_device *device = kgsl_device_from_dev(dev);
 	int ret;
 
+	return count;
 	if (device == NULL)
 		return 0;
 
@@ -2272,8 +2273,9 @@ int kgsl_pwrctrl_init(struct kgsl_device *device)
 		}
 	}
 
-	pwr->bus_ib = kzalloc(bus_scale_table->num_usecases *
-		sizeof(*pwr->bus_ib), GFP_KERNEL);
+	pwr->bus_ib = kcalloc(bus_scale_table->num_usecases,
+			      sizeof(*pwr->bus_ib),
+			      GFP_KERNEL);
 	if (pwr->bus_ib == NULL) {
 		result = -ENOMEM;
 		goto error_cleanup_pcl;
