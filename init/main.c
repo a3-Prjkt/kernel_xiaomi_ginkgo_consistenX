@@ -597,25 +597,6 @@ asmlinkage __visible void __init start_kernel(void)
 	page_alloc_init();
 
 	pr_notice("Kernel command line: %s\n", boot_command_line);
-
-#ifdef CONFIG_MACH_XIAOMI_GINKGO
-	if (strstr(command_line, "androidboot.fpsensor=fpc")) {
-		fpsensor = 1; /* fpc fingerprint */
-		printk("I am fpc fingerprint");
-	} else {
-		fpsensor = 2; /* goodix fingerprint */
-		printk("I am goodix fingerprint");
-	}
-
-	if (strstr(command_line, "androidboot.hwversion=2")) {
-		lct_hardwareid = 2;
-		printk("I am new board for imx582 camera");
-	} else {
-		lct_hardwareid = 0;
-		printk("I am old board for imx582 camera");
-	}
-#endif
-
 	/* parameters may set static keys */
 	jump_label_init();
 
