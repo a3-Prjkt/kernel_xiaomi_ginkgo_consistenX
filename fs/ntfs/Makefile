@@ -12,4 +12,5 @@ ntfs-$(CONFIG_NTFS_RW) += bitmap.o lcnalloc.o logfile.o quota.o usnjrnl.o
 ccflags-y := -DNTFS_VERSION=\"2.1.32\"
 ccflags-$(CONFIG_NTFS_DEBUG)	+= -DDEBUG
 ccflags-$(CONFIG_NTFS_RW)	+= -DNTFS_RW
+ccflags-$(CONFIG_ARCH_HAS_VLA_CHECKS) += $(call cc-disable-warning, vla)
 
