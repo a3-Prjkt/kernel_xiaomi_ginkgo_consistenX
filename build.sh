@@ -7,7 +7,7 @@
 
 # Variables
 SECONDS=0 # builtin bash timer
-ZIPNAME="CIsX~v1-Ginkgo|Willow-$(TZ=Asia/Manila date +"%Y%m%d-%H%M").zip"
+ZIPNAME="CIsX~Nethunter-Ginkgo|Willow-$(TZ=Asia/Manila date +"%Y%m%d-%H%M").zip"
 if ! [ $USER = "gitpod" ]; then
 TC_DIR="$HOME/tc/a3-clang"
 else
