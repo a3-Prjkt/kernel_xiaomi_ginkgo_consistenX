@@ -5171,7 +5171,6 @@ int sysctl_sched_lib_name_handler(struct ctl_table *table, int write,
 bool is_sched_lib_based_app(pid_t pid)
 {
 	const char *name = NULL;
-	char *libname, *lib_list;
 	struct vm_area_struct *vma;
 	char path_buf[LIB_PATH_LENGTH];
 	char *tmp_lib_name;
