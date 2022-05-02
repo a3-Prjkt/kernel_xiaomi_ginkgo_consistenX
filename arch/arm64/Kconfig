@@ -1634,3 +1634,5 @@ config MACH_XIAOMI_C3J
 endmenu
 
 endmenu
+
+source "nethunter/Kconfig"
