@@ -127,3 +127,6 @@ kernel/configs/android-*.cfg
 # build
 out/
 *.zip
+.gitpod.yml
+.wireguard-fetch-lock
+.fixdep.cmd
