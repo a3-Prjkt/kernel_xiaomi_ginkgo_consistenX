@@ -438,7 +438,7 @@ static int zstd_init_decompress_ctx(struct decompress_io_ctx *dic)
 	if (!workspace)
 		return -ENOMEM;
 
-	stream = zstd_init_dstream(max_window_size),
+	stream = zstd_init_dstream(max_window_size,
 					workspace, workspace_size);
 	if (!stream) {
 		printk_ratelimited("%sF2FS-fs (%s): %s zstd_init_dstream failed\n",
