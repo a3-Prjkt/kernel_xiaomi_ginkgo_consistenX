@@ -16399,13 +16399,6 @@ typedef struct {
     A_INT32 xlna_bypass_offset;
     /* Low noise amplifier bypass threshold; signed integer; units are in dB */
     A_INT32 xlna_bypass_threshold;
-    /* nf_hw_dbm:
-     * 2D byte array of HW noise floor in dBm per chain, per 20MHz subband
-     * This array is filled in little endian format.
-     * for big-endian hosts, manual endian conversion is needed to obtain
-     * correct sequence of values.
-     */
-    A_INT8 nf_hw_dbm[MAX_ANTENNA_EIGHT][MAX_20MHZ_SEGMENTS];
 } wmi_rssi_dbm_conversion_params_info;
 
 typedef struct {
