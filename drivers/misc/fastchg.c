@@ -33,7 +33,6 @@ int force_fast_charge = 1;
 #include <linux/uci/uci.h>
 #endif
 
-int force_fast_charge = 1;
 int get_force_fast_charge(void) {
 #ifdef CONFIG_UCI
 	return uci_get_user_property_int_mm("fastcharge", force_fast_charge, 0, 1);
