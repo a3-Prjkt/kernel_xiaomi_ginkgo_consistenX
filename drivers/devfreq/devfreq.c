@@ -1299,7 +1299,7 @@ static ssize_t time_in_state_show(struct device *dev, struct device_attribute *a
         if (err)
                 return 0;
 
-		for (i = 0; i < max_state; i++) {
+		    for (i = 0; i < max_state; i++) {
                 len += sprintf(buf + len, "%u %u\n", devfreq->profile->freq_table[i],
                         jiffies_to_msecs(devfreq->time_in_state[i]));
         }
