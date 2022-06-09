@@ -1324,7 +1324,7 @@ endif
 endif
 
 # Disable clang-specific config options when using a different compiler
-clang-specific-configs := LTO_CLANG CFI_CLANG SHADOW_CALL_STACK INIT_STACK_ALL_ZERO FORTIFY_SOURCE RELR
+clang-specific-configs := LTO_CLANG CFI_CLANG INIT_STACK_ALL_ZERO FORTIFY_SOURCE RELR
 
 # Disable lld-specific configs when using a different linker with GCC
 lld-specific-configs := RELR
