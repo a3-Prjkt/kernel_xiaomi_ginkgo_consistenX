@@ -1870,9 +1870,6 @@ stop:
 	if (gc_type == FG_GC)
 		f2fs_unpin_all_sections(sbi, true);
 
-	if (gc_type == FG_GC && f2fs_pinned_section_exists(DIRTY_I(sbi)))
-		f2fs_unpin_all_sections(sbi, true);
-
 	trace_f2fs_gc_end(sbi->sb, ret, total_freed, sec_freed,
 				get_pages(sbi, F2FS_DIRTY_NODES),
 				get_pages(sbi, F2FS_DIRTY_DENTS),
