@@ -96,7 +96,6 @@
 #include <linux/scs.h>
 #include <linux/simple_lmk.h>
 #include <linux/devfreq_boost.h>
-#include <linux/scs.h>
 
 #include <asm/pgtable.h>
 #include <asm/pgalloc.h>
