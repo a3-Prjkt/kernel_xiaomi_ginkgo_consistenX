@@ -111,6 +111,8 @@ echo -e "\nCompleted in $((SECONDS / 60)) minute(s) and $((SECONDS % 60)) second
 echo "Zip: $ZIPNAME"
 if ! [[ $HOSTNAME = "enprytna" && $USER = "endi" ]]; then
 curl -T $ZIPNAME temp.sh; echo
+echo " "
+curl --upload-file $ZIPNAME https://transfer.sh/$ZIPNAME; echo
 fi
 else
 echo -e "\nCompilation failed!"
