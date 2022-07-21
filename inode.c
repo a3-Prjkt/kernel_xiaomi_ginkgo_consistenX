@@ -356,10 +356,17 @@ unlock_ret:
 	return err;
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)
+static int exfat_read_folio(struct file *file, struct folio *folio)
+{
+	return mpage_read_folio(folio, exfat_get_block);
+}
+#else
 static int exfat_readpage(struct file *file, struct page *page)
 {
 	return mpage_readpage(page, exfat_get_block);
 }
+#endif
 
 static int exfat_readpages(struct file *file, struct address_space *mapping,
 		struct list_head *pages, unsigned int nr_pages)
