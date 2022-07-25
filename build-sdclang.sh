@@ -41,6 +41,8 @@ exit 1
 fi
 fi
 
+echo -e "\nCompiling with $($TC_DIR/bin/clang --version | head -n1 | cut -d " " -f1,4)\n"
+
 export KBUILD_BUILD_USER=forest
 export KBUILD_BUILD_HOST=Disconnect0
 
@@ -91,7 +93,7 @@ echo -e "\nStarting compilation...\n"
 make -j$(nproc --all) O=out ARCH=arm64 LD_LIBRARY_PATH="${TC_DIR}/lib:${LD_LIBRARY_PATH}" CC=clang LD=ld.lld AR=llvm-ar AS=llvm-as NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip CROSS_COMPILE=aarch64-linux-android- CROSS_COMPILE_ARM32=arm-linux-androideabi- CLANG_TRIPLE=aarch64-linux-gnu- Image.gz-dtb dtbo.img
 
 if [ -f "out/arch/arm64/boot/Image.gz-dtb" ] && [ -f "out/arch/arm64/boot/dtbo.img" ]; then
-echo -e "\nKernel compiled succesfully! Zipping up...\n"
+echo -e "\nCompiled Successfully With $($TC_DIR/bin/clang --version | head -n1 | cut -d " " -f1,4)! Zipping up...\n"
 if [ -d "$AK3_DIR" ]; then
 cp -r $AK3_DIR AnyKernel3
 elif ! git clone -q https://github.com/Disconnect0/AnyKernel3; then
@@ -109,7 +111,7 @@ rm -rf AnyKernel3
 rm -rf out/arch/arm64/boot
 echo -e "\nCompleted in $((SECONDS / 60)) minute(s) and $((SECONDS % 60)) second(s) !"
 echo "Zip: $ZIPNAME"
-if ! [[ $HOSTNAME = "enprytna" && $USER = "endi" ]]; then
+if ! [[ $HOSTNAME = "KOMPUTERTWU" && $USER = "forest" ]]; then
 curl -T $ZIPNAME temp.sh; echo
 echo " "
 curl --upload-file $ZIPNAME https://transfer.sh/$ZIPNAME; echo
