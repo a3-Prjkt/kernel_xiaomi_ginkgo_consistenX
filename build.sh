@@ -8,7 +8,11 @@
 # Variables
 SECONDS=0 # builtin bash timer
 ZIPNAME="CIsX~v1-Ginkgo|Willow-$(TZ=Asia/Manila date +"%Y%m%d-%H%M").zip"
+if ! [ $USER = "gitpod" ]; then
 TC_DIR="$HOME/tc/a3-clang"
+else
+TC_DIR="/workspace/tc/a3-clang"
+fi
 AK3_DIR="./ak3"
 DEFCONFIG="vendor/ginkgo-perf_defconfig"
 
