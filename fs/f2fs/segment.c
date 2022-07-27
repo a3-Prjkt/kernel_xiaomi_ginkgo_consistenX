@@ -195,6 +195,7 @@ void f2fs_abort_atomic_write(struct inode *inode, bool clean)
 		clear_inode_flag(fi->cow_inode, FI_ATOMIC_FILE);
 		iput(fi->cow_inode);
 		fi->cow_inode = NULL;
+		release_atomic_write_cnt(inode);
 		clear_inode_flag(inode, FI_ATOMIC_FILE);
 
 		spin_lock(&sbi->inode_lock[ATOMIC_FILE]);
@@ -334,6 +335,11 @@ next:
 	}
 
 out:
+	if (ret)
+		sbi->revoked_atomic_block += fi->atomic_write_cnt;
+	else
+		sbi->committed_atomic_block += fi->atomic_write_cnt;
+
 	__complete_revoke_list(inode, &revoke_list, ret ? true : false);
 
 	return ret;
@@ -3443,7 +3449,8 @@ int f2fs_inplace_write_data(struct f2fs_io_info *fio)
 		goto drop_bio;
 	}
 
-	invalidate_mapping_pages(META_MAPPING(sbi),
+	if (fio->post_read)
+		invalidate_mapping_pages(META_MAPPING(sbi),
 				fio->new_blkaddr, fio->new_blkaddr);
 
 	stat_inc_inplace_blocks(fio->sbi);
@@ -3626,10 +3633,16 @@ void f2fs_wait_on_block_writeback(struct inode *inode, block_t blkaddr)
 void f2fs_wait_on_block_writeback_range(struct inode *inode, block_t blkaddr,
 								block_t len)
 {
+	struct f2fs_sb_info *sbi = F2FS_I_SB(inode);
 	block_t i;
+
+	if (!f2fs_post_read_required(inode))
+		return;
 
 	for (i = 0; i < len; i++)
 		f2fs_wait_on_block_writeback(inode, blkaddr + i);
+
+	invalidate_mapping_pages(META_MAPPING(sbi), blkaddr, blkaddr + len - 1);
 }
 
 static int read_compacted_summaries(struct f2fs_sb_info *sbi)
