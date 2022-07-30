@@ -3,6 +3,8 @@
 # Makefile for the Linux unix domain socket layer.
 #
 
+CFLAGS_af_unix.o := $(call cc-disable-warning, pointer-to-int-cast)
+
 obj-$(CONFIG_UNIX)	+= unix.o
 
 unix-y			:= af_unix.o garbage.o
