@@ -12,3 +12,6 @@ obj-$(CONFIG_SMB1390_CHARGE_PUMP)	+= smb1390-charger.o pmic-voter.o
 obj-$(CONFIG_SMB1390_CHARGE_PUMP_PSY)	+= smb1390-charger-psy.o pmic-voter.o
 obj-$(CONFIG_SMB1398_CHARGER)	+= smb1398-charger.o pmic-voter.o
 obj-$(CONFIG_SMB358_CHARGER)	+= smb358-charger.o
+
+# Disable -Wparentheses-equality spam
+CFLAGS_qg-soc.o := $(call cc-disable-warning, parentheses-equality)
