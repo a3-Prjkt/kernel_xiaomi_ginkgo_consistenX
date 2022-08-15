@@ -1905,7 +1905,7 @@ static int f2fs_setflags_common(struct inode *inode, u32 iflags, u32 mask)
 		if (iflags & F2FS_COMPR_FL) {
 			if (!f2fs_may_compress(inode))
 				return -EINVAL;
-			if (S_ISREG(inode->i_mode) && F2FS_HAS_BLOCKS(inode))
+			if (S_ISREG(inode->i_mode) && inode->i_size)
 				return -EINVAL;
 
 			set_compress_context(inode);
@@ -2158,7 +2158,6 @@ static int f2fs_ioc_start_atomic_write(struct file *filp)
 	f2fs_update_time(sbi, REQ_TIME);
 	fi->atomic_write_task = current;
 	stat_update_max_atomic_write(inode);
-	fi->atomic_write_cnt = 0;
 out:
 	inode_unlock(inode);
 	mnt_drop_write_file(filp);
