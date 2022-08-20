@@ -304,3 +304,5 @@ ENDPROC(crc32_armv8_le)
 ENTRY(crc32c_armv8_le)
 	__crc32		c
 ENDPROC(crc32c_armv8_le)
+
+.section .note.GNU-stack,"",%progbits

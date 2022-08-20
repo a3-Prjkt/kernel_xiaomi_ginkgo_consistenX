@@ -123,3 +123,5 @@ ENTRY(sha1_ce_transform)
 	vstr		dgbs, [r0, #16]
 	bx		lr
 ENDPROC(sha1_ce_transform)
+
+.section .note.GNU-stack,"",%progbits

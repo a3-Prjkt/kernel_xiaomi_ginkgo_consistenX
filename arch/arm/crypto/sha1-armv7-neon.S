@@ -636,3 +636,5 @@ ENTRY(sha1_transform_neon)
 .Ldo_nothing:
   bx lr
 ENDPROC(sha1_transform_neon)
+
+.section .note.GNU-stack,"",%progbits

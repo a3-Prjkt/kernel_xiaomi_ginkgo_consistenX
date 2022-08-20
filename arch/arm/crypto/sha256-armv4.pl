@@ -715,3 +715,5 @@ foreach (split($/,$code)) {
 }
 
 close STDOUT; # enforce flush
+
+.section .note.GNU-stack,"",%progbits

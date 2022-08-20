@@ -648,3 +648,5 @@ close SELF;
 
 print $code;
 close STDOUT; # enforce flush
+
+.section .note.GNU-stack,"",%progbits

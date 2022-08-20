@@ -123,3 +123,5 @@ ENTRY(sha2_ce_transform)
 	vst1.32		{dga-dgb}, [r0]
 	bx		lr
 ENDPROC(sha2_ce_transform)
+
+.section .note.GNU-stack,"",%progbits

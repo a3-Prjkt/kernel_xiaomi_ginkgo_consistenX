@@ -240,3 +240,5 @@ ENTRY(pmull_ghash_update_p8)
 
 	ghash_update	p8
 ENDPROC(pmull_ghash_update_p8)
+
+.section .note.GNU-stack,"",%progbits

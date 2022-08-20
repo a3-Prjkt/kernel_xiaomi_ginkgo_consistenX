@@ -495,3 +495,5 @@ ENTRY(sha1_block_data_order)
 ENDPROC(sha1_block_data_order)
 .asciz	"SHA1 block transform for ARMv4, CRYPTOGAMS by <appro@openssl.org>"
 .align	2
+
+.section .note.GNU-stack,"",%progbits

@@ -558,3 +558,5 @@ ENTRY(chacha_4block_xor_neon)
 	pop		{r4-r5}
 	bx		lr
 ENDPROC(chacha_4block_xor_neon)
+
+.section .note.GNU-stack,"",%progbits

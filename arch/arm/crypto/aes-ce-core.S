@@ -513,3 +513,5 @@ ENTRY(ce_aes_invert)
 	vst1.8		{q0}, [r0]
 	bx		lr
 ENDPROC(ce_aes_invert)
+
+.section .note.GNU-stack,"",%progbits

@@ -1021,3 +1021,5 @@ ENDPROC(aesbs_xts_encrypt)
 ENTRY(aesbs_xts_decrypt)
 	__xts_crypt	aesbs_decrypt8, q0, q1, q6, q4, q2, q7, q3, q5
 ENDPROC(aesbs_xts_decrypt)
+
+.section .note.GNU-stack,"",%progbits
