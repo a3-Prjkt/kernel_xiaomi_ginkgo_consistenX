@@ -136,7 +136,7 @@ static bool is_input_present(struct step_chg_info *chip)
 		rc = power_supply_get_property(chip->usb_psy,
 				POWER_SUPPLY_PROP_PRESENT, &pval);
 		if (rc < 0)
-			pr_debug("Couldn't read USB Present status, rc=%d\n", rc);
+			pr_err("Couldn't read USB Present status, rc=%d\n", rc);
 		else
 			input_present |= pval.intval;
 	}
@@ -147,7 +147,7 @@ static bool is_input_present(struct step_chg_info *chip)
 		rc = power_supply_get_property(chip->dc_psy,
 				POWER_SUPPLY_PROP_PRESENT, &pval);
 		if (rc < 0)
-			pr_debug("Couldn't read DC Present status, rc=%d\n", rc);
+			pr_err("Couldn't read DC Present status, rc=%d\n", rc);
 		else
 			input_present |= pval.intval;
 	}
@@ -165,27 +165,27 @@ int read_range_data_from_node(struct device_node *node,
 	int rc = 0, i, length, per_tuple_length, tuples;
 
 	if (!node || !prop_str || !ranges) {
-		pr_debug("Invalid parameters passed\n");
+		pr_err("Invalid parameters passed\n");
 		return -EINVAL;
 	}
 
 	rc = of_property_count_elems_of_size(node, prop_str, sizeof(u32));
 	if (rc < 0) {
-		pr_debug("Count %s failed, rc=%d\n", prop_str, rc);
+		pr_err("Count %s failed, rc=%d\n", prop_str, rc);
 		return rc;
 	}
 
 	length = rc;
 	per_tuple_length = sizeof(struct range_data) / sizeof(u32);
 	if (length % per_tuple_length) {
-		pr_debug("%s length (%d) should be multiple of %d\n",
+		pr_err("%s length (%d) should be multiple of %d\n",
 				prop_str, length, per_tuple_length);
 		return -EINVAL;
 	}
 	tuples = length / per_tuple_length;
 
 	if (tuples > MAX_STEP_CHG_ENTRIES) {
-		pr_debug("too many entries(%d), only %d allowed\n",
+		pr_err("too many entries(%d), only %d allowed\n",
 				tuples, MAX_STEP_CHG_ENTRIES);
 		return -EINVAL;
 	}
@@ -193,14 +193,14 @@ int read_range_data_from_node(struct device_node *node,
 	rc = of_property_read_u32_array(node, prop_str,
 			(u32 *)ranges, length);
 	if (rc) {
-		pr_debug("Read %s failed, rc=%d", prop_str, rc);
+		pr_err("Read %s failed, rc=%d", prop_str, rc);
 		return rc;
 	}
 
 	for (i = 0; i < tuples; i++) {
 		if (ranges[i].low_threshold >
 				ranges[i].high_threshold) {
-			pr_debug("%s thresholds should be in ascendant ranges\n",
+			pr_err("%s thresholds should be in ascendant ranges\n",
 						prop_str);
 			rc = -EINVAL;
 			goto clean;
@@ -209,7 +209,7 @@ int read_range_data_from_node(struct device_node *node,
 		if (i != 0) {
 			if (ranges[i - 1].high_threshold >
 					ranges[i].low_threshold) {
-				pr_debug("%s thresholds should be in ascendant ranges\n",
+				pr_err("%s thresholds should be in ascendant ranges\n",
 							prop_str);
 				rc = -EINVAL;
 				goto clean;
@@ -249,7 +249,7 @@ static int get_step_chg_jeita_setting_from_profile(struct step_chg_info *chip)
 
 	batt_node = of_find_node_by_phandle(be32_to_cpup(handle));
 	if (!batt_node) {
-		pr_debug("Get battery data node failed\n");
+		pr_err("Get battery data node failed\n");
 		return -EINVAL;
 	}
 
@@ -270,14 +270,14 @@ static int get_step_chg_jeita_setting_from_profile(struct step_chg_info *chip)
 		return PTR_ERR(profile_node);
 
 	if (!profile_node) {
-		pr_debug("Couldn't find profile\n");
+		pr_err("Couldn't find profile\n");
 		return -ENODATA;
 	}
 
 	rc = of_property_read_string(profile_node, "qcom,battery-type",
 					&batt_type_str);
 	if (rc < 0) {
-		pr_debug("battery type unavailable, rc:%d\n", rc);
+		pr_err("battery type unavailable, rc:%d\n", rc);
 		return rc;
 	}
 	pr_debug("battery: %s detected, getting sw-jeita/step charging settings\n",
@@ -286,14 +286,14 @@ static int get_step_chg_jeita_setting_from_profile(struct step_chg_info *chip)
 	rc = of_property_read_u32(profile_node, "qcom,max-voltage-uv",
 					&max_fv_uv);
 	if (rc < 0) {
-		pr_debug("max-voltage_uv reading failed, rc=%d\n", rc);
+		pr_err("max-voltage_uv reading failed, rc=%d\n", rc);
 		return rc;
 	}
 
 	rc = of_property_read_u32(profile_node, "qcom,fastchg-current-ma",
 					&max_fcc_ma);
 	if (rc < 0) {
-		pr_debug("max-fastchg-current-ma reading failed, rc=%d\n", rc);
+		pr_err("max-fastchg-current-ma reading failed, rc=%d\n", rc);
 		return rc;
 	}
 
@@ -507,7 +507,7 @@ static void taper_fcc_step_chg(struct step_chg_info *chip, int index,
 	u32 current_fcc, target_fcc;
 
 	if (index < 0) {
-		pr_debug("Invalid STEP CHG index\n");
+		pr_err("Invalid STEP CHG index\n");
 		return;
 	}
 
@@ -575,7 +575,7 @@ static int handle_step_chg_config(struct step_chg_info *chip)
 				chip->step_chg_config->param.psy_prop, &pval);
 
 	if (rc < 0) {
-		pr_debug("Couldn't read %s property rc=%d\n",
+		pr_err("Couldn't read %s property rc=%d\n",
 			chip->step_chg_config->param.prop_name, rc);
 		return rc;
 	}
@@ -668,7 +668,7 @@ static int handle_jeita(struct step_chg_info *chip)
 				chip->jeita_fcc_config->param.psy_prop, &pval);
 
 	if (rc < 0) {
-		pr_debug("Couldn't read %s property rc=%d\n",
+		pr_err("Couldn't read %s property rc=%d\n",
 				chip->jeita_fcc_config->param.prop_name, rc);
 		return rc;
 	}
@@ -761,7 +761,7 @@ static int handle_battery_insertion(struct step_chg_info *chip)
 	rc = power_supply_get_property(chip->batt_psy,
 			POWER_SUPPLY_PROP_PRESENT, &pval);
 	if (rc < 0) {
-		pr_debug("Get battery present status failed, rc=%d\n", rc);
+		pr_err("Get battery present status failed, rc=%d\n", rc);
 		return rc;
 	}
 
@@ -806,13 +806,13 @@ static void status_change_work(struct work_struct *work)
 	if (rc > 0)
 		reschedule_jeita_work_us = rc;
 	else if (rc < 0)
-		pr_debug("Couldn't handle sw jeita rc = %d\n", rc);
+		pr_err("Couldn't handle sw jeita rc = %d\n", rc);
 
 	rc = handle_step_chg_config(chip);
 	if (rc > 0)
 		reschedule_step_work_us = rc;
 	if (rc < 0)
-		pr_debug("Couldn't handle step rc = %d\n", rc);
+		pr_err("Couldn't handle step rc = %d\n", rc);
 
 	/* Remove stale votes on USB removal */
 	if (is_usb_available(chip)) {
@@ -870,7 +870,7 @@ static int step_chg_register_notifier(struct step_chg_info *chip)
 	chip->nb.notifier_call = step_chg_notifier_call;
 	rc = power_supply_reg_notifier(&chip->nb);
 	if (rc < 0) {
-		pr_debug("Couldn't register psy notifier rc = %d\n", rc);
+		pr_err("Couldn't register psy notifier rc = %d\n", rc);
 		return rc;
 	}
 
@@ -884,7 +884,7 @@ int qcom_step_chg_init(struct device *dev,
 	struct step_chg_info *chip;
 
 	if (the_chip) {
-		pr_debug("Already initialized\n");
+		pr_err("Already initialized\n");
 		return -EINVAL;
 	}
 
@@ -932,7 +932,7 @@ int qcom_step_chg_init(struct device *dev,
 
 	rc = step_chg_register_notifier(chip);
 	if (rc < 0) {
-		pr_debug("Couldn't register psy notifier rc = %d\n", rc);
+		pr_err("Couldn't register psy notifier rc = %d\n", rc);
 		goto release_wakeup_source;
 	}
 
