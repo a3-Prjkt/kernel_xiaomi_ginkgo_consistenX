@@ -69,7 +69,7 @@ int restore_cycle_count(struct cycle_counter *counter)
 	rc = counter->restore_count(counter->data, counter->count,
 			BUCKET_COUNT);
 	if (rc < 0)
-		pr_debug("failed to restore cycle counter rc=%d\n", rc);
+		pr_err("failed to restore cycle counter rc=%d\n", rc);
 	mutex_unlock(&counter->lock);
 
 	return rc;
@@ -100,7 +100,7 @@ void clear_cycle_count(struct cycle_counter *counter)
 	rc = counter->store_count(counter->data, counter->count, 0,
 			BUCKET_COUNT * 2);
 	if (rc < 0)
-		pr_debug("failed to clear cycle counter rc=%d\n", rc);
+		pr_err("failed to clear cycle counter rc=%d\n", rc);
 
 	mutex_unlock(&counter->lock);
 }
@@ -122,7 +122,7 @@ static int store_cycle_count(struct cycle_counter *counter, int id)
 		return -ENODEV;
 
 	if (id < 0 || (id > BUCKET_COUNT - 1)) {
-		pr_debug("Invalid id %d\n", id);
+		pr_err("Invalid id %d\n", id);
 		return -EINVAL;
 	}
 
@@ -131,7 +131,7 @@ static int store_cycle_count(struct cycle_counter *counter, int id)
 
 	rc = counter->store_count(counter->data, &cyc_count, id, 2);
 	if (rc < 0) {
-		pr_debug("failed to write cycle_count[%d] rc=%d\n",
+		pr_err("failed to write cycle_count[%d] rc=%d\n",
 			id, rc);
 		return rc;
 	}
@@ -177,7 +177,7 @@ void cycle_count_update(struct cycle_counter *counter, int batt_soc,
 			if (counter->started[i] && batt_soc > soc_thresh) {
 				rc = store_cycle_count(counter, i);
 				if (rc < 0)
-					pr_debug("Error in storing cycle_ctr rc: %d\n",
+					pr_err("Error in storing cycle_ctr rc: %d\n",
 						rc);
 				counter->last_soc[i] = 0;
 				counter->started[i] = false;
@@ -231,7 +231,7 @@ int get_cycle_count(struct cycle_counter *counter, int *count)
 		counter->id = i;
 		rc = get_bucket_cycle_count(counter);
 		if (rc < 0) {
-			pr_debug("Couldn't get cycle count rc=%d\n", rc);
+			pr_err("Couldn't get cycle count rc=%d\n", rc);
 			return rc;
 		}
 		temp += rc;
@@ -272,12 +272,12 @@ int get_cycle_counts(struct cycle_counter *counter, const char **buf)
 		counter->id = i;
 		rc = get_bucket_cycle_count(counter);
 		if (rc < 0) {
-			pr_debug("Couldn't get cycle count rc=%d\n", rc);
+			pr_err("Couldn't get cycle count rc=%d\n", rc);
 			return rc;
 		}
 
 		if (sizeof(counter->str_buf) - len < 8) {
-			pr_debug("Invalid length %d\n", len);
+			pr_err("Invalid length %d\n", len);
 			return -EINVAL;
 		}
 
@@ -304,7 +304,7 @@ int cycle_count_init(struct cycle_counter *counter)
 
 	if (!counter->data || !counter->restore_count ||
 		!counter->store_count) {
-		pr_debug("Invalid parameters for using cycle counter\n");
+		pr_err("Invalid parameters for using cycle counter\n");
 		return -EINVAL;
 	}
 
@@ -375,7 +375,7 @@ static void cap_learning_post_process(struct cap_learning *cl)
 	if (cl->store_learned_capacity) {
 		rc = cl->store_learned_capacity(cl->data, cl->learned_cap_uah);
 		if (rc < 0)
-			pr_debug("Error in storing learned_cap_uah, rc=%d\n", rc);
+			pr_err("Error in storing learned_cap_uah, rc=%d\n", rc);
 	}
 
 	pr_debug("final cap_uah = %lld, learned capacity %lld -> %lld uah\n",
@@ -448,7 +448,7 @@ static int cap_learning_process_full_data(struct cap_learning *cl,
 
 	rc = cl->get_cc_soc(cl->data, &cc_soc_sw);
 	if (rc < 0) {
-		pr_debug("Error in getting CC_SOC_SW, rc=%d\n", rc);
+		pr_err("Error in getting CC_SOC_SW, rc=%d\n", rc);
 		return rc;
 	}
 
@@ -472,7 +472,7 @@ static int cap_learning_process_full_data(struct cap_learning *cl,
 
 	/* If the delta is < 50%, then skip processing full data */
 	if (cc_soc_delta_pct < 50) {
-		pr_debug("cc_soc_delta_pct: %d\n", cc_soc_delta_pct);
+		pr_err("cc_soc_delta_pct: %d\n", cc_soc_delta_pct);
 		return -ERANGE;
 	}
 
@@ -527,14 +527,14 @@ static int cap_learning_begin(struct cap_learning *cl, u32 batt_soc_cp)
 							CENTI_FULL_SOC);
 		rc = cl->prime_cc_soc(cl->data, batt_soc_prime);
 		if (rc < 0) {
-			pr_debug("Error in writing cc_soc_sw, rc=%d\n", rc);
+			pr_err("Error in writing cc_soc_sw, rc=%d\n", rc);
 			goto out;
 		}
 	}
 
 	rc = cl->get_cc_soc(cl->data, &cc_soc_sw);
 	if (rc < 0) {
-		pr_debug("Error in getting CC_SOC_SW, rc=%d\n", rc);
+		pr_err("Error in getting CC_SOC_SW, rc=%d\n", rc);
 		goto out;
 	}
 
@@ -571,7 +571,7 @@ static int cap_learning_done(struct cap_learning *cl, int batt_soc_cp)
 		/* Write a FULL value to cc_soc_sw */
 		rc = cl->prime_cc_soc(cl->data, cl->cc_soc_max);
 		if (rc < 0) {
-			pr_debug("Error in writing cc_soc_sw, rc=%d\n", rc);
+			pr_err("Error in writing cc_soc_sw, rc=%d\n", rc);
 			goto out;
 		}
 	}
@@ -658,7 +658,7 @@ void cap_learning_update(struct cap_learning *cl, int batt_temp,
 		if (charge_done) {
 			rc = cap_learning_done(cl, batt_soc_cp);
 			if (rc < 0)
-				pr_debug("Error in completing capacity learning, rc=%d\n",
+				pr_err("Error in completing capacity learning, rc=%d\n",
 					rc);
 
 			cl->active = false;
@@ -709,7 +709,7 @@ void cap_learning_update(struct cap_learning *cl, int batt_temp,
 
 		rc = cl->prime_cc_soc(cl->data, batt_soc_prime);
 		if (rc < 0)
-			pr_debug("Error in writing cc_soc_sw, rc=%d\n",
+			pr_err("Error in writing cc_soc_sw, rc=%d\n",
 				rc);
 	}
 
@@ -758,7 +758,7 @@ int cap_learning_post_profile_init(struct cap_learning *cl, int64_t nom_cap_uah)
 	cl->nom_cap_uah = nom_cap_uah;
 	rc = cl->get_learned_capacity(cl->data, &cl->learned_cap_uah);
 	if (rc < 0) {
-		pr_debug("Couldn't get learned capacity, rc=%d\n", rc);
+		pr_err("Couldn't get learned capacity, rc=%d\n", rc);
 		goto out;
 	}
 
@@ -782,7 +782,7 @@ int cap_learning_post_profile_init(struct cap_learning *cl, int64_t nom_cap_uah)
 
 		rc = cl->store_learned_capacity(cl->data, cl->learned_cap_uah);
 		if (rc < 0)
-			pr_debug("Error in storing learned_cap_uah, rc=%d\n", rc);
+			pr_err("Error in storing learned_cap_uah, rc=%d\n", rc);
 	}
 
 out:
@@ -805,12 +805,12 @@ int cap_learning_init(struct cap_learning *cl)
 
 	if (!cl->get_learned_capacity || !cl->store_learned_capacity ||
 		!cl->get_cc_soc) {
-		pr_debug("Insufficient functions for supporting capacity learning\n");
+		pr_err("Insufficient functions for supporting capacity learning\n");
 		return -EINVAL;
 	}
 
 	if (!cl->cc_soc_max) {
-		pr_debug("Insufficient parameters for supporting capacity learning\n");
+		pr_err("Insufficient parameters for supporting capacity learning\n");
 		return -EINVAL;
 	}
 
@@ -879,12 +879,12 @@ int soh_profile_update(struct soh_profile *sp, int new_soh)
 		rc = power_supply_set_property(sp->bms_psy,
 			POWER_SUPPLY_PROP_BATT_AGE_LEVEL, &pval);
 		if (rc < 0) {
-			pr_debug("Couldn't set batt_age_level rc=%d\n", rc);
+			pr_err("Couldn't set batt_age_level rc=%d\n", rc);
 			return rc;
 		}
 
 		sp->last_batt_age_level = batt_age_level;
-		pr_debug("Batt_age_level set to %d for SOH %d\n",
+		pr_info("Batt_age_level set to %d for SOH %d\n",
 			batt_age_level, new_soh);
 	}
 
@@ -912,7 +912,7 @@ int soh_profile_init(struct device *dev, struct soh_profile *sp)
 	rc = of_batterydata_get_aged_profile_count(sp->bp_node,
 				sp->batt_id_kohms, &profile_count);
 	if (rc < 0) {
-		pr_debug("Couldn't get profile count rc=%d\n", rc);
+		pr_err("Couldn't get profile count rc=%d\n", rc);
 		return rc;
 	}
 
@@ -924,7 +924,7 @@ int soh_profile_init(struct device *dev, struct soh_profile *sp)
 	rc = of_batterydata_read_soh_aged_profiles(sp->bp_node,
 				sp->batt_id_kohms, sp->soh_data);
 	if (rc < 0) {
-		pr_debug("Couldn't read SOH data for profile loading, rc=%d\n",
+		pr_err("Couldn't read SOH data for profile loading, rc=%d\n",
 			rc);
 		devm_kfree(dev, sp->soh_data);
 		return rc;
@@ -992,12 +992,12 @@ static int ttf_lerp(const struct ttf_pt *pts, size_t tablesize,
 	s64 temp;
 
 	if (pts == NULL) {
-		pr_debug("Table is NULL\n");
+		pr_err("Table is NULL\n");
 		return -EINVAL;
 	}
 
 	if (tablesize < 1) {
-		pr_debug("Table has no entries\n");
+		pr_err("Table has no entries\n");
 		return -ENOENT;
 	}
 
@@ -1007,7 +1007,7 @@ static int ttf_lerp(const struct ttf_pt *pts, size_t tablesize,
 	}
 
 	if (pts[0].x > pts[1].x) {
-		pr_debug("Table is not in acending order\n");
+		pr_err("Table is not in acending order\n");
 		return -EINVAL;
 	}
 
@@ -1043,13 +1043,13 @@ static int get_step_chg_current_window(struct ttf *ttf)
 	if (ttf->mode == TTF_MODE_VBAT_STEP_CHG) {
 		rc =  ttf->get_ttf_param(ttf->data, TTF_VBAT, &vbatt);
 		if (rc < 0) {
-			pr_debug("failed to get battery voltage, rc=%d\n", rc);
+			pr_err("failed to get battery voltage, rc=%d\n", rc);
 			return rc;
 		}
 	} else {
 		rc = ttf->get_ttf_param(ttf->data, TTF_OCV, &vbatt);
 		if (rc < 0) {
-			pr_debug("failed to get battery OCV, rc=%d\n", rc);
+			pr_err("failed to get battery OCV, rc=%d\n", rc);
 			return rc;
 		}
 	}
@@ -1081,7 +1081,7 @@ static int get_time_to_full_locked(struct ttf *ttf, int *val)
 
 	rc = ttf->get_ttf_param(ttf->data, TTF_TTE_VALID, &valid);
 	if (rc < 0) {
-		pr_debug("failed to get ttf_tte_valid rc=%d\n", rc);
+		pr_err("failed to get ttf_tte_valid rc=%d\n", rc);
 		return rc;
 	}
 
@@ -1092,7 +1092,7 @@ static int get_time_to_full_locked(struct ttf *ttf, int *val)
 
 	rc =  ttf->get_ttf_param(ttf->data, TTF_CHG_STATUS, &charge_status);
 	if (rc < 0) {
-		pr_debug("failed to get charge-status rc=%d\n", rc);
+		pr_err("failed to get charge-status rc=%d\n", rc);
 		return rc;
 	}
 
@@ -1103,7 +1103,7 @@ static int get_time_to_full_locked(struct ttf *ttf, int *val)
 
 	rc = ttf->get_ttf_param(ttf->data, TTF_MSOC, &msoc);
 	if (rc < 0) {
-		pr_debug("failed to get msoc rc=%d\n", rc);
+		pr_err("failed to get msoc rc=%d\n", rc);
 		return rc;
 	}
 	pr_debug("TTF: msoc=%d\n", msoc);
@@ -1133,13 +1133,13 @@ static int get_time_to_full_locked(struct ttf *ttf, int *val)
 
 	rc = ttf_circ_buf_median(&ttf->ibatt, &ibatt_avg);
 	if (rc < 0) {
-		pr_debug("failed to get IBATT AVG rc=%d\n", rc);
+		pr_err("failed to get IBATT AVG rc=%d\n", rc);
 		return rc;
 	}
 
 	rc = ttf_circ_buf_median(&ttf->vbatt, &vbatt_avg);
 	if (rc < 0) {
-		pr_debug("failed to get VBATT AVG rc=%d\n", rc);
+		pr_err("failed to get VBATT AVG rc=%d\n", rc);
 		return rc;
 	}
 
@@ -1148,7 +1148,7 @@ static int get_time_to_full_locked(struct ttf *ttf, int *val)
 
 	rc = ttf->get_ttf_param(ttf->data, TTF_ITERM, &iterm);
 	if (rc < 0) {
-		pr_debug("failed to get iterm rc=%d\n", rc);
+		pr_err("failed to get iterm rc=%d\n", rc);
 		return rc;
 	}
 	/* clamp ibatt_avg to iterm */
@@ -1157,14 +1157,14 @@ static int get_time_to_full_locked(struct ttf *ttf, int *val)
 
 	rc =  ttf->get_ttf_param(ttf->data, TTF_RBATT, &rbatt);
 	if (rc < 0) {
-		pr_debug("failed to get battery resistance rc=%d\n", rc);
+		pr_err("failed to get battery resistance rc=%d\n", rc);
 		return rc;
 	}
 	rbatt /= MILLI_UNIT;
 
 	rc =  ttf->get_ttf_param(ttf->data, TTF_FCC, &act_cap_mah);
 	if (rc < 0) {
-		pr_debug("failed to get ACT_BATT_CAP rc=%d\n", rc);
+		pr_err("failed to get ACT_BATT_CAP rc=%d\n", rc);
 		return rc;
 	}
 
@@ -1173,13 +1173,13 @@ static int get_time_to_full_locked(struct ttf *ttf, int *val)
 
 	rc =  ttf->get_ttf_param(ttf->data, TTF_VFLOAT, &float_volt_uv);
 	if (rc < 0) {
-		pr_debug("failed to get float_volt_uv rc=%d\n", rc);
+		pr_err("failed to get float_volt_uv rc=%d\n", rc);
 		return rc;
 	}
 
 	rc =  ttf->get_ttf_param(ttf->data, TTF_CHG_TYPE, &charge_type);
 	if (rc < 0) {
-		pr_debug("failed to get charge_type rc=%d\n", rc);
+		pr_err("failed to get charge_type rc=%d\n", rc);
 		return rc;
 	}
 
@@ -1200,7 +1200,7 @@ static int get_time_to_full_locked(struct ttf *ttf, int *val)
 			max(MILLI_UNIT, float_volt_uv / MILLI_UNIT));
 		break;
 	default:
-		pr_debug("TTF mode %d is not supported\n", ttf->mode);
+		pr_err("TTF mode %d is not supported\n", ttf->mode);
 		break;
 	}
 	pr_debug("TTF: i_cc2cv=%d\n", i_cc2cv);
@@ -1254,7 +1254,7 @@ static int get_time_to_full_locked(struct ttf *ttf, int *val)
 		pbatt_avg = vbatt_avg * ibatt_avg;
 		curr_window = get_step_chg_current_window(ttf);
 		if (curr_window < 0) {
-			pr_debug("Failed to get step charging window\n");
+			pr_err("Failed to get step charging window\n");
 			return curr_window;
 		}
 
@@ -1329,7 +1329,7 @@ static int get_time_to_full_locked(struct ttf *ttf, int *val)
 
 		break;
 	default:
-		pr_debug("TTF mode %d is not supported\n", ttf->mode);
+		pr_err("TTF mode %d is not supported\n", ttf->mode);
 		break;
 	}
 
@@ -1350,7 +1350,7 @@ cv_estimate:
 
 	rc = ttf_lerp(ttf_ln_table, ARRAY_SIZE(ttf_ln_table), tau, &tau);
 	if (rc < 0) {
-		pr_debug("failed to interpolate tau rc=%d\n", rc);
+		pr_err("failed to interpolate tau rc=%d\n", rc);
 		return rc;
 	}
 
@@ -1425,7 +1425,7 @@ static void ttf_work(struct work_struct *work)
 	mutex_lock(&ttf->lock);
 	rc =  ttf->get_ttf_param(ttf->data, TTF_CHG_STATUS, &charge_status);
 	if (rc < 0) {
-		pr_debug("failed to get charge_status rc=%d\n", rc);
+		pr_err("failed to get charge_status rc=%d\n", rc);
 		goto end_work;
 	}
 	if (charge_status != POWER_SUPPLY_STATUS_CHARGING &&
@@ -1434,13 +1434,13 @@ static void ttf_work(struct work_struct *work)
 
 	rc =  ttf->get_ttf_param(ttf->data, TTF_IBAT, &ibatt_now);
 	if (rc < 0) {
-		pr_debug("failed to get battery current, rc=%d\n", rc);
+		pr_err("failed to get battery current, rc=%d\n", rc);
 		goto end_work;
 	}
 
 	rc =  ttf->get_ttf_param(ttf->data, TTF_VBAT, &vbatt_now);
 	if (rc < 0) {
-		pr_debug("failed to get battery voltage, rc=%d\n", rc);
+		pr_err("failed to get battery voltage, rc=%d\n", rc);
 		goto end_work;
 	}
 
@@ -1450,7 +1450,7 @@ static void ttf_work(struct work_struct *work)
 	if (charge_status == POWER_SUPPLY_STATUS_CHARGING) {
 		rc = ttf_circ_buf_median(&ttf->ibatt, &ibatt_avg);
 		if (rc < 0) {
-			pr_debug("failed to get IBATT AVG rc=%d\n", rc);
+			pr_err("failed to get IBATT AVG rc=%d\n", rc);
 			goto end_work;
 		}
 
@@ -1468,7 +1468,7 @@ static void ttf_work(struct work_struct *work)
 
 		rc = get_time_to_full_locked(ttf, &ttf_now);
 		if (rc < 0) {
-			pr_debug("failed to get ttf, rc=%d\n", rc);
+			pr_err("failed to get ttf, rc=%d\n", rc);
 			goto end_work;
 		}
 
@@ -1513,7 +1513,7 @@ int ttf_get_time_to_empty(struct ttf *ttf, int *val)
 
 	rc = ttf->get_ttf_param(ttf->data, TTF_TTE_VALID, &valid);
 	if (rc < 0) {
-		pr_debug("failed to get ttf_tte_valid rc=%d\n", rc);
+		pr_err("failed to get ttf_tte_valid rc=%d\n", rc);
 		return rc;
 	}
 
@@ -1524,7 +1524,7 @@ int ttf_get_time_to_empty(struct ttf *ttf, int *val)
 
 	rc =  ttf->get_ttf_param(ttf->data, TTF_CHG_STATUS, &charge_status);
 	if (rc < 0) {
-		pr_debug("failed to get charge-status rc=%d\n", rc);
+		pr_err("failed to get charge-status rc=%d\n", rc);
 		return rc;
 	}
 
@@ -1538,7 +1538,7 @@ int ttf_get_time_to_empty(struct ttf *ttf, int *val)
 		/* try to get instantaneous current */
 		rc = ttf->get_ttf_param(ttf->data, TTF_IBAT, &ibatt_avg);
 		if (rc < 0) {
-			pr_debug("failed to get battery current, rc=%d\n", rc);
+			pr_err("failed to get battery current, rc=%d\n", rc);
 			return rc;
 		}
 	}
@@ -1550,13 +1550,13 @@ int ttf_get_time_to_empty(struct ttf *ttf, int *val)
 
 	rc = ttf->get_ttf_param(ttf->data, TTF_MSOC, &msoc);
 	if (rc < 0) {
-		pr_debug("Error in getting capacity, rc=%d\n", rc);
+		pr_err("Error in getting capacity, rc=%d\n", rc);
 		return rc;
 	}
 
 	rc = ttf->get_ttf_param(ttf->data, TTF_FCC, &act_cap_mah);
 	if (rc < 0) {
-		pr_debug("Error in getting ACT_BATT_CAP, rc=%d\n", rc);
+		pr_err("Error in getting ACT_BATT_CAP, rc=%d\n", rc);
 		return rc;
 	}
 
@@ -1619,7 +1619,7 @@ int ttf_tte_init(struct ttf *ttf)
 		return -ENODEV;
 
 	if (!ttf->awake_voter || !ttf->get_ttf_param) {
-		pr_debug("Insufficient functions for supporting ttf\n");
+		pr_err("Insufficient functions for supporting ttf\n");
 		return -EINVAL;
 	}
 
