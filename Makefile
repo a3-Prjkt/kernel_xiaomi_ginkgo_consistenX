@@ -745,9 +745,6 @@ KBUILD_CFLAGS	+= -mllvm -polly-run-dce
 endif
 endif # CONFIG_LLVM_POLLY
 
-endif # $(cc-name),clang
-endif # CONFIG_CC_OPTIMIZE_FOR_SIZE
-
 KBUILD_CFLAGS	+= $(call cc-option,-fno-delete-null-pointer-checks,)
 KBUILD_CFLAGS	+= $(call cc-disable-warning,frame-address,)
 KBUILD_CFLAGS	+= $(call cc-disable-warning, format-truncation)
