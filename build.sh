@@ -20,7 +20,7 @@ export PATH="$TC_DIR/bin:$PATH"
 
 if ! [ -d "$TC_DIR" ]; then
 echo "Æ3 clang not found! Cloning to $TC_DIR..."
-if ! git clone -q -b 15.x --depth=1 https://gitlab.com/a3-Prjkt/a3-clang $TC_DIR; then
+if ! git clone -q -b 16.x --depth=1 https://gitlab.com/a3-Prjkt/a3-clang $TC_DIR; then
 echo "Cloning failed! Aborting..."
 exit 1
 fi
