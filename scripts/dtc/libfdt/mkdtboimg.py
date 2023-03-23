@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # Copyright 2017, The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,13 +18,13 @@ from __future__ import print_function
 """Tool for packing multiple DTB/DTBO files into a single image"""
 
 import argparse
-import os
 import fnmatch
+import os
+import struct
+import zlib
 from array import array
 from collections import namedtuple
-import struct
 from sys import stdout
-import zlib
 
 class CompressionFormat(object):
     """Enum representing DT compression format for a DT entry.
@@ -1018,7 +1018,7 @@ def print_usage(cmd, _):
 def main():
     """Main entry point for mkdtboimg."""
 
-    parser = argparse.ArgumentParser(prog='mkdtboimg.py')
+    parser = argparse.ArgumentParser()
 
     subparser = parser.add_subparsers(title='subcommand',
                                       description='Valid subcommands')
