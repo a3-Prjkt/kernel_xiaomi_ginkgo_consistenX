@@ -33,7 +33,6 @@
 #include <linux/devfreq_boost.h>
 #include <linux/pm_qos.h>
 #include <linux/sync_file.h>
-#include <linux/devfreq_boost.h>
 
 #include "drm_crtc_internal.h"
 
