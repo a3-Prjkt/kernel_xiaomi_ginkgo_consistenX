@@ -125,7 +125,7 @@ static const char *sde_fence_get_driver_name(struct dma_fence *fence)
 
 	return f->name;
 #else
-	return "sde";
+	return "sde_fence";
 #endif
 }
 
